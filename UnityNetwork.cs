@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public abstract class UnityNetwork : MonoBehaviour, INetEventListener
+    public abstract class UnityNetwork : MonoBehaviour, INetEventListener, INetwork
     {
         [SerializeField]
         protected string connectionKey = Constants.DefaultConnectionKey;
@@ -47,12 +47,7 @@ namespace Exanite.Networking
 
         public void UnregisterPacketHandler(IPacketHandler handler)
         {
-            UnregisterPacketHandler(handler.HandlerId);
-        }
-
-        public void UnregisterPacketHandler(int id)
-        {
-            packetHandlers.Remove(id);
+            packetHandlers.Remove(handler.HandlerId);
         }
 
         public void SendAsPacketHandler(IPacketHandler handler, NetPeer peer, NetDataWriter writer, DeliveryMethod deliveryMethod)
