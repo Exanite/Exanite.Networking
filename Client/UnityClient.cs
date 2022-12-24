@@ -13,9 +13,8 @@ namespace Exanite.Networking.Client
 
         public NetPeer Server { get; private set; }
 
-        public bool IsConnecting { get; private set; }
-        public bool IsConnected { get; private set; }
-        public override bool IsReady => IsConnected;
+        public ConnectionStatus Status { get; private set; }
+        public override bool IsReady => Status == ConnectionStatus.Started;
 
         public event EventHandler<UnityClient, ConnectedEventArgs> Connected;
         public event EventHandler<UnityClient, DisconnectedEventArgs> Disconnected;
@@ -27,24 +26,20 @@ namespace Exanite.Networking.Client
 
         public async UniTask<ConnectResult> ConnectAsync(IPEndPoint endPoint)
         {
-            if (IsConnected)
+            switch (Status)
             {
-                throw new InvalidOperationException("Client is already connected.");
+                case ConnectionStatus.Starting: throw new InvalidOperationException("Client is already connecting.");
+                case ConnectionStatus.Started: throw new InvalidOperationException("Client is already connected.");
             }
 
-            if (IsConnecting)
-            {
-                throw new InvalidOperationException("Client is already connecting.");
-            }
-
-            IsConnecting = true;
+            Status = ConnectionStatus.Starting;
 
             netManager.Start();
             netManager.Connect(endPoint, ConnectionKey);
 
-            await UniTask.WaitUntil(() => !IsConnecting);
+            await UniTask.WaitUntil(() => Status != ConnectionStatus.Starting);
 
-            return new ConnectResult(IsConnected, previousDisconnectInfo.Reason.ToString());
+            return new ConnectResult(Status == ConnectionStatus.Started, previousDisconnectInfo.Reason.ToString());
         }
 
         public void Disconnect()
@@ -63,8 +58,7 @@ namespace Exanite.Networking.Client
 
             netManager.Stop();
 
-            IsConnected = false;
-            IsConnecting = false;
+            Status = ConnectionStatus.Stopped;
         }
 
         public void SendAsPacketHandlerToServer(IPacketHandler handler, NetDataWriter writer, DeliveryMethod deliveryMethod)
@@ -81,8 +75,7 @@ namespace Exanite.Networking.Client
 
             Connected?.Invoke(this, new ConnectedEventArgs(server));
 
-            IsConnecting = false;
-            IsConnected = true;
+            Status = ConnectionStatus.Started;
 
             Server = server;
         }
@@ -91,13 +84,12 @@ namespace Exanite.Networking.Client
         {
             base.OnPeerDisconnected(server, disconnectInfo);
 
-            if (IsConnected)
+            if (Status == ConnectionStatus.Started)
             {
                 Disconnected?.Invoke(this, new DisconnectedEventArgs(server, disconnectInfo));
             }
 
-            IsConnecting = false;
-            IsConnected = false;
+            Status = ConnectionStatus.Stopped;
 
             Server = null;
             previousDisconnectInfo = disconnectInfo;
