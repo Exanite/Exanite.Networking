@@ -6,6 +6,6 @@ namespace Exanite.Networking
     {
         int HandlerId { get; }
 
-        void Receive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod);
+        void OnReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod);
     }
 }

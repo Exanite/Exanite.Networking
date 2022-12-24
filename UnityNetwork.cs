@@ -89,7 +89,7 @@ namespace Exanite.Networking
                 return;
             }
 
-            packetHandler.Receive(peer, reader, deliveryMethod);
+            packetHandler.OnReceive(peer, reader, deliveryMethod);
         }
 
         protected virtual void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType) {}
