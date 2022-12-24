@@ -118,7 +118,7 @@ namespace Exanite.Networking
             OnNetworkError(endPoint, socketError);
         }
 
-        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
+        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             OnNetworkReceive(peer, reader, deliveryMethod);
         }
