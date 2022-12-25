@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using UnityEngine;
+using LnlDeliveryMethod = LiteNetLib.DeliveryMethod;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
@@ -63,12 +64,12 @@ namespace Exanite.Networking.Transports.LiteNetLib
             packetHandlers.Remove(handler.HandlerId);
         }
 
-        public void SendAsPacketHandler(IPacketHandler handler, NetPeer peer, NetDataWriter writer, global::LiteNetLib.DeliveryMethod deliveryMethod)
+        public void SendAsPacketHandler(IPacketHandler handler, NetPeer peer, NetDataWriter writer, DeliveryMethod deliveryMethod)
         {
             ValidateIsReadyToSend();
 
             WritePacketHandlerDataToCachedWriter(handler, writer);
-            peer.Send(cachedWriter, deliveryMethod);
+            peer.Send(cachedWriter, deliveryMethod.ToLnlDeliveryMethod());
         }
 
         protected void WritePacketHandlerDataToCachedWriter(IPacketHandler handler, NetDataWriter writer)
@@ -87,7 +88,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             }
         }
 
-        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, global::LiteNetLib.DeliveryMethod deliveryMethod)
+        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, LnlDeliveryMethod deliveryMethod)
         {
             var packetHandlerId = reader.GetInt();
 
@@ -96,7 +97,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
                 return;
             }
 
-            packetHandler.OnReceive(peer, reader, deliveryMethod);
+            packetHandler.OnReceive(peer, reader, deliveryMethod.ToDeliveryMethod());
         }
 
         protected abstract void OnPeerConnected(NetPeer peer);
