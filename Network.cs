@@ -36,7 +36,9 @@ namespace Exanite.Networking
             ValidateIsReadyToSend();
 
             WritePacketHandlerDataToCachedWriter(handler, writer);
-            connection.Transport.SendData(connection.TransportConnectionId, writer, sendType);
+
+            var data = new ArraySegment<byte>(writer.Data, 0, writer.Length);
+            connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
         }
 
         protected void WritePacketHandlerDataToCachedWriter(IPacketHandler handler, NetDataWriter writer)

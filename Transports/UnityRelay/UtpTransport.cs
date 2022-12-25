@@ -1,6 +1,5 @@
 using System;
 using Cysharp.Threading.Tasks;
-using LiteNetLib.Utils;
 using UniDi;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
@@ -25,7 +24,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             throw new NotImplementedException();
         }
 
-        public void SendData(ITransport connectionId, NetDataWriter writer, SendType sendType)
+        public void SendData(ITransport connectionId, ArraySegment<byte> data, SendType sendType)
         {
             throw new NotImplementedException();
         }

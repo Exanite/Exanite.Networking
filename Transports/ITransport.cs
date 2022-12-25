@@ -1,4 +1,4 @@
-using LiteNetLib.Utils;
+using System;
 
 namespace Exanite.Networking.Transports
 {
@@ -8,14 +8,10 @@ namespace Exanite.Networking.Transports
 
         RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection);
 
-        void SendData(ITransport connectionId, NetDataWriter writer, SendType sendType);
+        void SendData(ITransport connectionId, ArraySegment<byte> data, SendType sendType);
     }
 
-    public interface ITransportServer: ITransport
-    {
-    }
+    public interface ITransportServer : ITransport {}
 
-    public interface ITransportClient: ITransport
-    {
-    }
+    public interface ITransportClient : ITransport {}
 }

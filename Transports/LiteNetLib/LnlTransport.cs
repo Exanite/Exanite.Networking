@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public abstract class LnlTransport : MonoBehaviour
+    public abstract class LnlTransport : MonoBehaviour, ITransport
     {
         [SerializeField]
         protected string connectionKey = Constants.DefaultConnectionKey;
@@ -19,8 +19,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
         protected EventBasedNetListener listener;
         protected NetManager netManager;
         protected Dictionary<int, IPacketHandler> packetHandlers;
-
-        protected NetDataWriter cachedWriter;
 
         public string ConnectionKey
         {
@@ -37,8 +35,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             netManager = new NetManager(listener);
             packetHandlers = new Dictionary<int, IPacketHandler>();
 
-            cachedWriter = new NetDataWriter();
-
             listener.PeerConnectedEvent += OnPeerConnected;
             listener.PeerDisconnectedEvent += OnPeerDisconnected;
             listener.NetworkReceiveEvent += OnNetworkReceive;
@@ -53,43 +49,21 @@ namespace Exanite.Networking.Transports.LiteNetLib
             listener.PeerConnectedEvent -= OnPeerConnected;
         }
 
-        private void FixedUpdate()
+        public void Tick()
         {
             netManager.PollEvents();
         }
 
-        public void RegisterPacketHandler(IPacketHandler handler)
+        public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
         {
-            packetHandlers.Add(handler.HandlerId, handler);
+            throw new NotImplementedException();
         }
 
-        public void UnregisterPacketHandler(IPacketHandler handler)
+        public void SendData(ITransport connectionId, ArraySegment<byte> data, SendType sendType)
         {
-            packetHandlers.Remove(handler.HandlerId);
-        }
+            // peer.Send(data.Array, data.Offset, data.Count, sendType.ToLnlDeliveryMethod());
 
-        public void SendAsPacketHandler(IPacketHandler handler, NetPeer peer, NetDataWriter writer, SendType sendType)
-        {
-            ValidateIsReadyToSend();
-
-            WritePacketHandlerDataToCachedWriter(handler, writer);
-            peer.Send(cachedWriter, sendType.ToLnlDeliveryMethod());
-        }
-
-        protected void WritePacketHandlerDataToCachedWriter(IPacketHandler handler, NetDataWriter writer)
-        {
-            cachedWriter.Reset();
-
-            cachedWriter.Put(handler.HandlerId);
-            cachedWriter.Put(writer.Data, 0, writer.Length);
-        }
-
-        protected void ValidateIsReadyToSend()
-        {
-            if (!IsReady)
-            {
-                throw new InvalidOperationException($"{GetType()} is not ready to send.");
-            }
+            throw new NotImplementedException();
         }
 
         protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
@@ -111,7 +85,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
         protected abstract void OnConnectionRequest(ConnectionRequest request);
     }
 
-    public class LnlTransportClient : LnlTransport
+    public class LnlTransportClient : LnlTransport, ITransportClient
     {
         private DisconnectInfo previousDisconnectInfo;
 
@@ -195,7 +169,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
         }
     }
 
-    public class LnlTransportServer : LnlTransport
+    public class LnlTransportServer : LnlTransport, ITransportServer
     {
         private readonly List<NetPeer> connectedPeers = new();
 
@@ -209,12 +183,12 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected override void OnDestroy()
         {
-            Close(false);
+            StopConnection(false);
 
             base.OnDestroy();
         }
 
-        public void Create(int port)
+        public void StartConnection(int port)
         {
             if (IsCreated)
             {
@@ -226,17 +200,9 @@ namespace Exanite.Networking.Transports.LiteNetLib
             IsCreated = true;
         }
 
-        public void Close()
+        public void StopConnection()
         {
-            Close(true);
-        }
-
-        public void SendAsPacketHandlerToAll(IPacketHandler handler, NetDataWriter writer, DeliveryMethod deliveryMethod)
-        {
-            ValidateIsReadyToSend();
-
-            WritePacketHandlerDataToCachedWriter(handler, writer);
-            netManager.SendToAll(cachedWriter, deliveryMethod);
+            StopConnection(true);
         }
 
         public void DisconnectPeer(NetPeer peer)
@@ -244,7 +210,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             netManager.DisconnectPeer(peer);
         }
 
-        protected void Close(bool pollEvents)
+        protected void StopConnection(bool pollEvents)
         {
             if (!IsCreated)
             {
