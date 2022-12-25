@@ -4,7 +4,11 @@
     "references": [
         "Exanite.Core",
         "LiteNetLib",
-        "UniTask"
+        "UniTask",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Services.Authentication",
+        "Unity.Services.Relay"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
