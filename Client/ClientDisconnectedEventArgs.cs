@@ -3,9 +3,9 @@ using LiteNetLib;
 
 namespace Exanite.Networking.Client
 {
-    public class DisconnectedEventArgs : EventArgs
+    public class ClientDisconnectedEventArgs : EventArgs
     {
-        public DisconnectedEventArgs(NetPeer server, DisconnectInfo disconnectInfo)
+        public ClientDisconnectedEventArgs(NetPeer server, DisconnectInfo disconnectInfo)
         {
             Server = server;
             DisconnectInfo = disconnectInfo;

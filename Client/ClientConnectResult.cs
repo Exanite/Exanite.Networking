@@ -1,8 +1,8 @@
 ﻿namespace Exanite.Networking.Client
 {
-    public class ConnectResult
+    public class ClientConnectResult
     {
-        public ConnectResult(bool isSuccess, string failReason = Constants.DefaultReason)
+        public ClientConnectResult(bool isSuccess, string failReason = Constants.DefaultReason)
         {
             IsSuccess = isSuccess;
             FailReason = failReason;
