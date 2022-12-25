@@ -1,6 +1,6 @@
 namespace Exanite.Networking
 {
-    public enum DeliveryMethod
+    public enum SendType
     {
         Reliable = 0,
         Unreliable = 1,

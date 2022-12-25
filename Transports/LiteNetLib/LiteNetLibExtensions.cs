@@ -1,17 +1,17 @@
-using LnlDeliveryMethod = LiteNetLib.DeliveryMethod;
+using LiteNetLib;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
     public static class LiteNetLibExtensions
     {
-        public static LnlDeliveryMethod ToLnlDeliveryMethod(this DeliveryMethod deliveryMethod)
+        public static DeliveryMethod ToLnlDeliveryMethod(this SendType sendType)
         {
-            return deliveryMethod == DeliveryMethod.Unreliable ? LnlDeliveryMethod.Unreliable : LnlDeliveryMethod.ReliableOrdered;
+            return sendType == SendType.Unreliable ? DeliveryMethod.Unreliable : DeliveryMethod.ReliableOrdered;
         }
 
-        public static DeliveryMethod ToDeliveryMethod(this LnlDeliveryMethod deliveryMethod)
+        public static SendType ToDeliveryMethod(this DeliveryMethod deliveryMethod)
         {
-            return deliveryMethod == LnlDeliveryMethod.Unreliable ? DeliveryMethod.Unreliable : DeliveryMethod.Reliable;
+            return deliveryMethod == DeliveryMethod.Unreliable ? SendType.Unreliable : SendType.Reliable;
         }
     }
 }
