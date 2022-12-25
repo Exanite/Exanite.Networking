@@ -1,13 +1,18 @@
 namespace Exanite.Networking.Transports
 {
-    public interface ITransport<out TServer, out TClient>
+    public interface ITransport
+    {
+        public void Tick();
+    }
+
+    public interface ITransport<out TServer, out TClient> : ITransport
         where TServer : ITransportServer
         where TClient : ITransportClient
     {
         public TServer Server { get; }
         public TClient Client { get; }
 
-        public virtual void Tick()
+        void ITransport.Tick()
         {
             Server.Tick();
             Client.Tick();
