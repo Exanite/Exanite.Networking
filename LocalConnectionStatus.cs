@@ -1,6 +1,6 @@
 namespace Exanite.Networking
 {
-    public enum LocalConnectionStatus
+    public enum LocalConnectionStatus : byte
     {
         Stopped,
         Starting,

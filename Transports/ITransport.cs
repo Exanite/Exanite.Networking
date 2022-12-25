@@ -1,31 +1,21 @@
+using LiteNetLib.Utils;
+
 namespace Exanite.Networking.Transports
 {
     public interface ITransport
     {
         public void Tick();
+
+        RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection);
+
+        void SendData(ITransport connectionId, NetDataWriter writer, SendType sendType);
     }
 
-    public interface ITransport<out TServer, out TClient> : ITransport
-        where TServer : ITransportServer
-        where TClient : ITransportClient
+    public interface ITransportServer: ITransport
     {
-        public TServer Server { get; }
-        public TClient Client { get; }
-
-        void ITransport.Tick()
-        {
-            Server.Tick();
-            Client.Tick();
-        }
     }
 
-    public interface ITransportServer
+    public interface ITransportClient: ITransport
     {
-        public void Tick();
-    }
-
-    public interface ITransportClient
-    {
-        public void Tick();
     }
 }

@@ -1,6 +1,6 @@
 namespace Exanite.Networking
 {
-    public enum RemoteConnectionStatus
+    public enum RemoteConnectionStatus : byte
     {
         Stopped,
         Started,

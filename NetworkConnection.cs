@@ -4,8 +4,19 @@ namespace Exanite.Networking
 {
     public class NetworkConnection
     {
-        public int Id { get; internal set; }
+        public NetworkConnection(int id, ITransport transport, ITransport transportConnectionId)
+        {
+            Id = id;
 
-        public ITransport Transport { get; internal set; }
+            Transport = transport;
+            TransportConnectionId = transportConnectionId;
+        }
+
+        public int Id { get; }
+
+        public ITransport Transport { get; }
+        public ITransport TransportConnectionId { get; }
+
+        public RemoteConnectionStatus Status => Transport.GetConnectionStatus(this);
     }
 }

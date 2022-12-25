@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public abstract class UnityNetwork : MonoBehaviour, INetwork
+    public abstract class UnityNetwork : MonoBehaviour
     {
         [SerializeField]
         protected string connectionKey = Constants.DefaultConnectionKey;

@@ -1,5 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
+using LiteNetLib.Utils;
+using UniDi;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
 using Unity.Services.Relay;
@@ -7,87 +9,80 @@ using UnityEngine;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
-    public class UnityRelayTransport : ITransport<UnityRelayTransportServer, UnityRelayTransportClient>
+    public abstract class UnityRelayTransport : MonoBehaviour, ITransport
     {
-        public UnityRelayTransport()
-        {
-            Server = new UnityRelayTransportServer();
-            Client = new UnityRelayTransportClient();
-        }
+        protected NetworkDriver Driver;
 
-        public UnityRelayTransportServer Server { get; }
-        public UnityRelayTransportClient Client { get; }
-    }
-
-    public class UnityRelayTransportClient : ITransportClient
-    {
-        private IRelayService relayService;
-
-        private NetworkDriver clientDriver;
+        [Inject] protected IRelayService RelayService;
 
         public void Tick()
         {
-
+            Driver.ScheduleUpdate().Complete();
         }
 
+        public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendData(ITransport connectionId, NetDataWriter writer, SendType sendType)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class UnityRelayTransportClient : UnityRelayTransport, ITransportClient
+    {
         public async UniTask StartConnection()
         {
-            var allocation = await relayService.CreateAllocationAsync(2);
+            var allocation = await RelayService.CreateAllocationAsync(2);
 
             var relayData = UnityRelayUtility.CreateHostRelayData(allocation);
 
             var networkSettings = new NetworkSettings();
             networkSettings.WithRelayParameters(ref relayData);
 
-            clientDriver = NetworkDriver.Create(networkSettings);
-            if (clientDriver.Bind(NetworkEndPoint.AnyIpv4) != 0)
+            Driver = NetworkDriver.Create(networkSettings);
+            if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
             {
                 throw new Exception("Failed to bind to local address");
             }
 
-            await UniTask.WaitWhile(() => clientDriver.Bound);
+            await UniTask.WaitWhile(() => Driver.Bound);
 
-            if (clientDriver.Listen() != 0)
+            if (Driver.Listen() != 0)
             {
                 throw new Exception("Failed to start listening to connections");
             }
         }
 
-        public void StopConnection() {}
-    }
-
-    public class UnityRelayTransportServer : ITransportServer
-    {
-        private IRelayService relayService;
-
-        private NetworkDriver serverDriver;
-
-        public void Tick()
+        public void StopConnection()
         {
-            if (serverDriver.IsCreated)
-            {
-                serverDriver.ScheduleUpdate().Complete();
-            }
+            Driver.Dispose();
         }
 
+    }
+
+    public class UnityRelayTransportServer : UnityRelayTransport, ITransportServer
+    {
         public async UniTask StartConnection()
         {
-            var allocation = await relayService.CreateAllocationAsync(2);
+            var allocation = await RelayService.CreateAllocationAsync(2);
 
             var relayData = UnityRelayUtility.CreateHostRelayData(allocation);
 
             var networkSettings = new NetworkSettings();
             networkSettings.WithRelayParameters(ref relayData);
 
-            serverDriver = NetworkDriver.Create(networkSettings);
-            if (serverDriver.Bind(NetworkEndPoint.AnyIpv4) != 0)
+            Driver = NetworkDriver.Create(networkSettings);
+            if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
             {
                 throw new Exception("Failed to bind to local address");
             }
 
-            await UniTask.WaitWhile(() => serverDriver.Bound);
+            await UniTask.WaitWhile(() => Driver.Bound);
 
-            if (serverDriver.Listen() != 0)
+            if (Driver.Listen() != 0)
             {
                 throw new Exception("Failed to start listening to connections");
             }
@@ -97,7 +92,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public void StopConnection()
         {
-            serverDriver.Dispose();
+            Driver.Dispose();
         }
     }
 }

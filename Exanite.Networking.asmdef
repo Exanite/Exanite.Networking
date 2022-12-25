@@ -4,6 +4,7 @@
     "references": [
         "Exanite.Core",
         "LiteNetLib",
+        "UniDi.UniDi",
         "UniTask",
         "Unity.Burst",
         "Unity.Collections",
@@ -15,7 +16,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "UniDi-Usage.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

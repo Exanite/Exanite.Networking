@@ -22,12 +22,12 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected override void OnDestroy()
         {
-            Disconnect(false);
+            StopConnection(false);
 
             base.OnDestroy();
         }
 
-        public async UniTask<ClientConnectResult> ConnectAsync(IPEndPoint endPoint)
+        public async UniTask<ClientConnectResult> StartConnection(IPEndPoint endPoint)
         {
             switch (Status)
             {
@@ -45,12 +45,12 @@ namespace Exanite.Networking.Transports.LiteNetLib
             return new ClientConnectResult(Status == LocalConnectionStatus.Started, previousDisconnectInfo.Reason.ToString());
         }
 
-        public void Disconnect()
+        public void StopConnection()
         {
-            Disconnect(true);
+            StopConnection(true);
         }
 
-        protected void Disconnect(bool pollEvents)
+        protected void StopConnection(bool pollEvents)
         {
             netManager.DisconnectAll();
 
