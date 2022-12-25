@@ -7,7 +7,7 @@ using Exanite.Networking.Server;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public class UnityServer : UnityNetwork
+    public class LnlTransportServer : LnlTransport
     {
         private readonly List<NetPeer> connectedPeers = new();
 
@@ -16,8 +16,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
         public bool IsCreated { get; private set; }
         public override bool IsReady => IsCreated;
 
-        public event EventHandler<UnityServer, PeerConnectedEventArgs> PeerConnected;
-        public event EventHandler<UnityServer, PeerDisconnectedEventArgs> PeerDisconnected;
+        public event EventHandler<LnlTransportServer, PeerConnectedEventArgs> PeerConnected;
+        public event EventHandler<LnlTransportServer, PeerDisconnectedEventArgs> PeerDisconnected;
 
         protected override void OnDestroy()
         {

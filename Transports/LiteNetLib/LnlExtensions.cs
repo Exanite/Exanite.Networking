@@ -2,7 +2,7 @@ using LiteNetLib;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public static class LiteNetLibExtensions
+    public static class LnlExtensions
     {
         public static DeliveryMethod ToLnlDeliveryMethod(this SendType sendType)
         {

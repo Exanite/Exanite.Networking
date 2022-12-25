@@ -8,7 +8,7 @@ using Exanite.Networking.Client;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public class UnityClient : UnityNetwork
+    public class LnlTransportClient : LnlTransport
     {
         private DisconnectInfo previousDisconnectInfo;
 
@@ -17,8 +17,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
         public LocalConnectionStatus Status { get; private set; }
         public override bool IsReady => Status == LocalConnectionStatus.Started;
 
-        public event EventHandler<UnityClient, ClientConnectedEventArgs> Connected;
-        public event EventHandler<UnityClient, ClientDisconnectedEventArgs> Disconnected;
+        public event EventHandler<LnlTransportClient, ClientConnectedEventArgs> Connected;
+        public event EventHandler<LnlTransportClient, ClientDisconnectedEventArgs> Disconnected;
 
         protected override void OnDestroy()
         {
@@ -62,14 +62,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             netManager.Stop();
 
             Status = LocalConnectionStatus.Stopped;
-        }
-
-        public void SendAsPacketHandlerToServer(IPacketHandler handler, NetDataWriter writer, global::LiteNetLib.DeliveryMethod deliveryMethod)
-        {
-            ValidateIsReadyToSend();
-
-            WritePacketHandlerDataToCachedWriter(handler, writer);
-            Server.Send(cachedWriter, deliveryMethod);
         }
 
         protected override void OnPeerConnected(NetPeer server)

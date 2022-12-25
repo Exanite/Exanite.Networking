@@ -10,7 +10,7 @@ namespace Exanite.Networking.Transports.UnityRelay
     ///     Helper methods from Unity Relay docs:
     ///     https://docs.unity.com/relay/relay-and-utp.html
     /// </summary>
-    public static class UnityRelayUtility
+    public static class UtpUtility
     {
         public static RelayServerData CreateHostRelayData(Allocation allocation, string connectionType = "dtls")
         {

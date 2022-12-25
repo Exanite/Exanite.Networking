@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
-    public abstract class UnityRelayTransport : MonoBehaviour, ITransport
+    public abstract class UtpTransport : MonoBehaviour, ITransport
     {
         protected NetworkDriver Driver;
 
@@ -31,13 +31,13 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
     }
 
-    public class UnityRelayTransportClient : UnityRelayTransport, ITransportClient
+    public class UtpTransportClient : UtpTransport, ITransportClient
     {
         public async UniTask StartConnection()
         {
             var allocation = await RelayService.CreateAllocationAsync(2);
 
-            var relayData = UnityRelayUtility.CreateHostRelayData(allocation);
+            var relayData = UtpUtility.CreateHostRelayData(allocation);
 
             var networkSettings = new NetworkSettings();
             networkSettings.WithRelayParameters(ref relayData);
@@ -63,13 +63,13 @@ namespace Exanite.Networking.Transports.UnityRelay
 
     }
 
-    public class UnityRelayTransportServer : UnityRelayTransport, ITransportServer
+    public class UtpTransportServer : UtpTransport, ITransportServer
     {
         public async UniTask StartConnection()
         {
             var allocation = await RelayService.CreateAllocationAsync(2);
 
-            var relayData = UnityRelayUtility.CreateHostRelayData(allocation);
+            var relayData = UtpUtility.CreateHostRelayData(allocation);
 
             var networkSettings = new NetworkSettings();
             networkSettings.WithRelayParameters(ref relayData);
