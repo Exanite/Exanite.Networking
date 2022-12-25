@@ -27,7 +27,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             // UTP uses pointers instead of managed arrays for performance reasons, so we use these helper functions to convert them
             var allocationIdBytes = ConvertFromAllocationIdBytes(allocation.AllocationIdBytes);
             var connectionData = ConvertConnectionData(allocation.ConnectionData);
-            var key = ConvertFromHMAC(allocation.Key);
+            var key = ConvertFromHmac(allocation.Key);
 
             // The host passes its connectionData twice into this function
             var relayServerData = new RelayServerData(ref serverEndpoint, 0, ref allocationIdBytes, ref connectionData,
@@ -52,7 +52,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             var allocationIdBytes = ConvertFromAllocationIdBytes(allocation.AllocationIdBytes);
             var connectionData = ConvertConnectionData(allocation.ConnectionData);
             var hostConnectionData = ConvertConnectionData(allocation.HostConnectionData);
-            var key = ConvertFromHMAC(allocation.Key);
+            var key = ConvertFromHmac(allocation.Key);
 
             // A player joining the host passes its own connectionData as well as the host's
             var relayServerData = new RelayServerData(ref serverEndpoint, 0, ref allocationIdBytes, ref connectionData,
@@ -83,7 +83,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
         }
 
-        private static RelayHMACKey ConvertFromHMAC(byte[] hmac)
+        private static RelayHMACKey ConvertFromHmac(byte[] hmac)
         {
             unsafe
             {
