@@ -1,4 +1,4 @@
-namespace Plugins.Exanite.Networking
+namespace Exanite.Networking
 {
     public enum DeliveryMethod
     {

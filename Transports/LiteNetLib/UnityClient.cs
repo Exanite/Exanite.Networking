@@ -4,8 +4,9 @@ using Cysharp.Threading.Tasks;
 using Exanite.Core.Events;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Exanite.Networking.Client;
 
-namespace Exanite.Networking.Client
+namespace Exanite.Networking.Transports.LiteNetLib
 {
     public class UnityClient : UnityNetwork
     {
@@ -63,7 +64,7 @@ namespace Exanite.Networking.Client
             Status = LocalConnectionStatus.Stopped;
         }
 
-        public void SendAsPacketHandlerToServer(IPacketHandler handler, NetDataWriter writer, DeliveryMethod deliveryMethod)
+        public void SendAsPacketHandlerToServer(IPacketHandler handler, NetDataWriter writer, global::LiteNetLib.DeliveryMethod deliveryMethod)
         {
             ValidateIsReadyToSend();
 

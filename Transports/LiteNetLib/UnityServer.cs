@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using Exanite.Core.Events;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Exanite.Networking.Server;
 
-namespace Exanite.Networking.Server
+namespace Exanite.Networking.Transports.LiteNetLib
 {
     public class UnityServer : UnityNetwork
     {
@@ -42,7 +43,7 @@ namespace Exanite.Networking.Server
             Close(true);
         }
 
-        public void SendAsPacketHandlerToAll(IPacketHandler handler, NetDataWriter writer, DeliveryMethod deliveryMethod)
+        public void SendAsPacketHandlerToAll(IPacketHandler handler, NetDataWriter writer, global::LiteNetLib.DeliveryMethod deliveryMethod)
         {
             ValidateIsReadyToSend();
 

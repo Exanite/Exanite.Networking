@@ -1,4 +1,4 @@
-namespace Exanite.Networking.Client
+namespace Exanite.Networking
 {
     public enum LocalConnectionStatus
     {

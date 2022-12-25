@@ -4,7 +4,7 @@ using LiteNetLib;
 using LiteNetLib.Utils;
 using UnityEngine;
 
-namespace Exanite.Networking
+namespace Exanite.Networking.Transports.LiteNetLib
 {
     public abstract class UnityNetwork : MonoBehaviour, INetwork
     {
@@ -63,7 +63,7 @@ namespace Exanite.Networking
             packetHandlers.Remove(handler.HandlerId);
         }
 
-        public void SendAsPacketHandler(IPacketHandler handler, NetPeer peer, NetDataWriter writer, DeliveryMethod deliveryMethod)
+        public void SendAsPacketHandler(IPacketHandler handler, NetPeer peer, NetDataWriter writer, global::LiteNetLib.DeliveryMethod deliveryMethod)
         {
             ValidateIsReadyToSend();
 
@@ -87,7 +87,7 @@ namespace Exanite.Networking
             }
         }
 
-        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
+        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, global::LiteNetLib.DeliveryMethod deliveryMethod)
         {
             var packetHandlerId = reader.GetInt();
 
