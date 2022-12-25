@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public abstract class UnityNetwork : MonoBehaviour, INetEventListener, INetwork
+    public abstract class UnityNetwork : MonoBehaviour, INetwork
     {
         [SerializeField]
         protected string connectionKey = Constants.DefaultConnectionKey;
 
+        protected EventBasedNetListener listener;
         protected NetManager netManager;
         protected Dictionary<int, IPacketHandler> packetHandlers;
 
@@ -27,12 +26,26 @@ namespace Exanite.Networking
         public abstract bool IsReady { get; }
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            netManager = new NetManager(this);
+            listener = new EventBasedNetListener();
+            netManager = new NetManager(listener);
             packetHandlers = new Dictionary<int, IPacketHandler>();
 
             cachedWriter = new NetDataWriter();
+
+            listener.PeerConnectedEvent += OnPeerConnected;
+            listener.PeerDisconnectedEvent += OnPeerDisconnected;
+            listener.NetworkReceiveEvent += OnNetworkReceive;
+            listener.ConnectionRequestEvent += OnConnectionRequest;
+        }
+
+        protected virtual void OnDestroy()
+        {
+            listener.ConnectionRequestEvent -= OnConnectionRequest;
+            listener.NetworkReceiveEvent -= OnNetworkReceive;
+            listener.PeerDisconnectedEvent -= OnPeerDisconnected;
+            listener.PeerConnectedEvent -= OnPeerConnected;
         }
 
         private void FixedUpdate()
@@ -74,13 +87,7 @@ namespace Exanite.Networking
             }
         }
 
-        protected virtual void OnPeerConnected(NetPeer peer) {}
-
-        protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo) {}
-
-        protected virtual void OnNetworkError(IPEndPoint endPoint, SocketError socketError) {}
-
-        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
+        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
         {
             var packetHandlerId = reader.GetInt();
 
@@ -92,45 +99,10 @@ namespace Exanite.Networking
             packetHandler.OnReceive(peer, reader, deliveryMethod);
         }
 
-        protected virtual void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType) {}
+        protected abstract void OnPeerConnected(NetPeer peer);
 
-        protected virtual void OnNetworkLatencyUpdate(NetPeer peer, int latency) {}
+        protected abstract void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo);
 
-        protected virtual void OnConnectionRequest(ConnectionRequest request) {}
-
-        void INetEventListener.OnPeerConnected(NetPeer peer)
-        {
-            OnPeerConnected(peer);
-        }
-
-        void INetEventListener.OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
-        {
-            OnPeerDisconnected(peer, disconnectInfo);
-        }
-
-        void INetEventListener.OnNetworkError(IPEndPoint endPoint, SocketError socketError)
-        {
-            OnNetworkError(endPoint, socketError);
-        }
-
-        void INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
-        {
-            OnNetworkReceive(peer, reader, deliveryMethod);
-        }
-
-        void INetEventListener.OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
-        {
-            OnNetworkReceiveUnconnected(remoteEndPoint, reader, messageType);
-        }
-
-        void INetEventListener.OnNetworkLatencyUpdate(NetPeer peer, int latency)
-        {
-            OnNetworkLatencyUpdate(peer, latency);
-        }
-
-        void INetEventListener.OnConnectionRequest(ConnectionRequest request)
-        {
-            OnConnectionRequest(request);
-        }
+        protected abstract void OnConnectionRequest(ConnectionRequest request);
     }
 }

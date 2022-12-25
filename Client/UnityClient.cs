@@ -19,9 +19,11 @@ namespace Exanite.Networking.Client
         public event EventHandler<UnityClient, ClientConnectedEventArgs> Connected;
         public event EventHandler<UnityClient, ClientDisconnectedEventArgs> Disconnected;
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             Disconnect(false);
+
+            base.OnDestroy();
         }
 
         public async UniTask<ClientConnectResult> ConnectAsync(IPEndPoint endPoint)
@@ -71,8 +73,6 @@ namespace Exanite.Networking.Client
 
         protected override void OnPeerConnected(NetPeer server)
         {
-            base.OnPeerConnected(server);
-
             Connected?.Invoke(this, new ClientConnectedEventArgs(server));
 
             Status = LocalConnectionStatus.Started;
@@ -82,8 +82,6 @@ namespace Exanite.Networking.Client
 
         protected override void OnPeerDisconnected(NetPeer server, DisconnectInfo disconnectInfo)
         {
-            base.OnPeerDisconnected(server, disconnectInfo);
-
             if (Status == LocalConnectionStatus.Started)
             {
                 Disconnected?.Invoke(this, new ClientDisconnectedEventArgs(server, disconnectInfo));

@@ -18,9 +18,11 @@ namespace Exanite.Networking.Server
         public event EventHandler<UnityServer, PeerConnectedEventArgs> PeerConnected;
         public event EventHandler<UnityServer, PeerDisconnectedEventArgs> PeerDisconnected;
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             Close(false);
+
+            base.OnDestroy();
         }
 
         public void Create(int port)
@@ -74,8 +76,6 @@ namespace Exanite.Networking.Server
 
         protected override void OnPeerConnected(NetPeer peer)
         {
-            base.OnPeerConnected(peer);
-
             connectedPeers.Add(peer);
 
             PeerConnected?.Invoke(this, new PeerConnectedEventArgs(peer));
@@ -83,8 +83,6 @@ namespace Exanite.Networking.Server
 
         protected override void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
-            base.OnPeerDisconnected(peer, disconnectInfo);
-
             connectedPeers.Remove(peer);
 
             PeerDisconnected?.Invoke(this, new PeerDisconnectedEventArgs(peer, disconnectInfo));
