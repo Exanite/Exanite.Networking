@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using Cysharp.Threading.Tasks;
 using LiteNetLib;
 using UnityEngine;
@@ -10,6 +9,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
     public abstract class LnlTransport : MonoBehaviour, ITransport
     {
         [SerializeField] protected string connectionKey = Constants.DefaultConnectionKey;
+        [SerializeField] private string remoteAddress;
+        [SerializeField] private short port;
 
         protected EventBasedNetListener listener;
         protected NetManager netManager;
@@ -18,6 +19,18 @@ namespace Exanite.Networking.Transports.LiteNetLib
         {
             get => connectionKey;
             set => connectionKey = value;
+        }
+
+        public string RemoteAddress
+        {
+            get => remoteAddress;
+            set => remoteAddress = value;
+        }
+
+        public short Port
+        {
+            get => port;
+            set => port = value;
         }
 
         public LocalConnectionStatus Status { get; protected set; }
@@ -39,6 +52,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected virtual void OnDestroy()
         {
+            StopConnection(false);
+
             listener.ConnectionRequestEvent -= OnConnectionRequest;
             listener.NetworkReceiveEvent -= OnNetworkReceive;
             listener.PeerDisconnectedEvent -= OnPeerDisconnected;
@@ -50,14 +65,25 @@ namespace Exanite.Networking.Transports.LiteNetLib
             netManager.PollEvents();
         }
 
-        public UniTask StartConnection()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract UniTask StartConnection();
 
         public void StopConnection()
         {
-            throw new NotImplementedException();
+            StopConnection(true);
+        }
+
+        protected void StopConnection(bool pollEvents)
+        {
+            netManager.DisconnectAll();
+
+            if (pollEvents)
+            {
+                netManager.PollEvents();
+            }
+
+            netManager.Stop();
+
+            Status = LocalConnectionStatus.Stopped;
         }
 
         public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
@@ -93,19 +119,12 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
     public class LnlTransportClient : LnlTransport, ITransportClient
     {
-        protected override void OnDestroy()
-        {
-            StopConnection(false);
-
-            base.OnDestroy();
-        }
-
-        public async UniTask StartConnection(IPEndPoint endPoint)
+        public override async UniTask StartConnection()
         {
             Status = LocalConnectionStatus.Starting;
 
             netManager.Start();
-            netManager.Connect(endPoint, ConnectionKey);
+            netManager.Connect(RemoteAddress, Port, ConnectionKey);
 
             await UniTask.WaitUntil(() => Status != LocalConnectionStatus.Starting);
 
@@ -113,25 +132,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             {
                 throw new Exception("Failed to connect.");
             }
-        }
-
-        public void StopConnection()
-        {
-            StopConnection(true);
-        }
-
-        protected void StopConnection(bool pollEvents)
-        {
-            netManager.DisconnectAll();
-
-            if (pollEvents)
-            {
-                netManager.PollEvents();
-            }
-
-            netManager.Stop();
-
-            Status = LocalConnectionStatus.Stopped;
         }
 
         protected override void OnPeerConnected(NetPeer peer)
@@ -165,30 +165,11 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public IReadOnlyList<NetPeer> ConnectedPeers => connectedPeers;
 
-        public bool IsCreated { get; private set; }
-
-        protected override void OnDestroy()
+        public override UniTask StartConnection()
         {
-            StopConnection(false);
+            netManager.Start(Port);
 
-            base.OnDestroy();
-        }
-
-        public void StartConnection(int port)
-        {
-            if (IsCreated)
-            {
-                throw new InvalidOperationException("Server has already been created.");
-            }
-
-            netManager.Start(port);
-
-            IsCreated = true;
-        }
-
-        public void StopConnection()
-        {
-            StopConnection(true);
+            return UniTask.CompletedTask;
         }
 
         public void DisconnectPeer(NetPeer peer)
@@ -196,24 +177,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             netManager.DisconnectPeer(peer);
         }
 
-        protected void StopConnection(bool pollEvents)
-        {
-            if (!IsCreated)
-            {
-                return;
-            }
-
-            netManager.DisconnectAll();
-
-            if (pollEvents)
-            {
-                netManager.PollEvents();
-            }
-
-            netManager.Stop();
-
-            IsCreated = false;
-        }
 
         protected override void OnConnectionRequest(ConnectionRequest request)
         {
