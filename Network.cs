@@ -10,12 +10,10 @@ namespace Exanite.Networking
 {
     public abstract class Network : MonoBehaviour
     {
-        protected LocalConnectionStatus status;
-
         protected Dictionary<int, IPacketHandler> packetHandlers;
         protected NetDataWriter cachedWriter;
 
-        public LocalConnectionStatus Status => status;
+        public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
@@ -65,20 +63,31 @@ namespace Exanite.Networking
                 throw new InvalidOperationException($"{GetType()} is not ready to send.");
             }
         }
+
+        protected void ValidateIsStopped()
+        {
+            switch (Status)
+            {
+                case LocalConnectionStatus.Starting: throw new InvalidOperationException($"{GetType().Name} is already starting.");
+                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType().Name}Network is already started.");
+            }
+        }
     }
 
     public class NetworkServer : Network
     {
         [OdinSerialize] private List<ITransportServer> transports = new();
 
-        private Dictionary<int, NetworkConnection> connections = new();
+        private readonly Dictionary<int, NetworkConnection> connections = new();
 
         public IReadOnlyList<ITransportServer> Transports => transports;
         public IReadOnlyDictionary<int, NetworkConnection> Connections => connections;
 
         public override async UniTask StartConnection()
         {
-            status = LocalConnectionStatus.Starting;
+            ValidateIsStopped();
+
+            Status = LocalConnectionStatus.Starting;
 
             try
             {
@@ -92,7 +101,7 @@ namespace Exanite.Networking
                 StopConnection();
             }
 
-            status = LocalConnectionStatus.Started;
+            Status = LocalConnectionStatus.Started;
         }
 
         public override void StopConnection()
@@ -102,7 +111,7 @@ namespace Exanite.Networking
                 transport.StopConnection();
             }
 
-            status = LocalConnectionStatus.Stopped;
+            Status = LocalConnectionStatus.Stopped;
         }
     }
 
@@ -119,7 +128,9 @@ namespace Exanite.Networking
 
         public override async UniTask StartConnection()
         {
-            status = LocalConnectionStatus.Starting;
+            ValidateIsStopped();
+
+            Status = LocalConnectionStatus.Starting;
 
             try
             {
@@ -130,14 +141,14 @@ namespace Exanite.Networking
                 StopConnection();
             }
 
-            status = LocalConnectionStatus.Started;
+            Status = LocalConnectionStatus.Started;
         }
 
         public override void StopConnection()
         {
             transport.StopConnection();
 
-            status = LocalConnectionStatus.Stopped;
+            Status = LocalConnectionStatus.Stopped;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             set => connectionKey = value;
         }
 
-        public LocalConnectionStatus Status => throw new NotImplementedException();
+        public LocalConnectionStatus Status { get; protected set; }
 
         public event ReceivedDataEvent ReceivedData;
 
@@ -93,8 +93,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public NetPeer Server { get; private set; }
 
-        public LocalConnectionStatus Status { get; private set; }
-
         public event EventHandler<LnlTransportClient, ClientConnectedEventArgs> Connected;
         public event EventHandler<LnlTransportClient, ClientDisconnectedEventArgs> Disconnected;
 
@@ -107,12 +105,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public async UniTask<ClientConnectResult> StartConnection(IPEndPoint endPoint)
         {
-            switch (Status)
-            {
-                case LocalConnectionStatus.Starting: throw new InvalidOperationException("Client is already connecting.");
-                case LocalConnectionStatus.Started: throw new InvalidOperationException("Client is already connected.");
-            }
-
             Status = LocalConnectionStatus.Starting;
 
             netManager.Start();

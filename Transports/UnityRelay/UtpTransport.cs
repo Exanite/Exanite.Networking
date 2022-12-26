@@ -14,7 +14,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         [Inject] protected IRelayService RelayService;
 
-        public LocalConnectionStatus Status => throw new NotImplementedException();
+        public LocalConnectionStatus Status { get; protected set; }
 
         public event ReceivedDataEvent ReceivedData;
 
