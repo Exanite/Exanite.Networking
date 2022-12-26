@@ -12,6 +12,13 @@ namespace Exanite.Networking
         public ITransportClient Transport => transport;
         public NetworkConnection Server => connectionTracker.Connections.Values.FirstOrDefault();
 
+        public override void Tick()
+        {
+            base.Tick();
+
+            transport.Tick();
+        }
+
         public void SetTransport(ITransportClient transport)
         {
             this.transport = transport;

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
 using LiteNetLib.Utils;
-using UnityEngine;
+using Sirenix.OdinInspector;
 
 namespace Exanite.Networking
 {
-    public abstract class Network : MonoBehaviour
+    public abstract class Network : SerializedMonoBehaviour
     {
         protected ConnectionTracker connectionTracker;
         protected Dictionary<int, IPacketHandler> packetHandlers;
@@ -27,7 +27,7 @@ namespace Exanite.Networking
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
 
-        protected void Awake()
+        protected virtual void Awake()
         {
             connectionFactory = new ConnectionFactory();
             connectionTracker = new ConnectionTracker(connectionFactory);
@@ -40,11 +40,18 @@ namespace Exanite.Networking
             connectionTracker.ConnectionRemoved += OnConnectionRemoved;
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             connectionTracker.ConnectionAdded -= OnConnectionAdded;
             connectionTracker.ConnectionRemoved -= OnConnectionRemoved;
         }
+
+        protected virtual void FixedUpdate()
+        {
+            Tick();
+        }
+
+        public virtual void Tick() {}
 
         public abstract UniTask StartConnection();
 

@@ -9,8 +9,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
     public abstract class LnlTransport : MonoBehaviour, ITransport
     {
         [SerializeField] protected string connectionKey = Constants.DefaultConnectionKey;
-        [SerializeField] private string remoteAddress;
-        [SerializeField] private short port;
+        [SerializeField] private string remoteAddress = Constants.DefaultRemoteAddress;
+        [SerializeField] private ushort port = Constants.DefaultPort;
 
         protected EventBasedNetListener listener;
         protected NetManager netManager;
@@ -29,7 +29,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             set => remoteAddress = value;
         }
 
-        public short Port
+        public ushort Port
         {
             get => port;
             set => port = value;
