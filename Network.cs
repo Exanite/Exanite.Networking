@@ -78,7 +78,7 @@ namespace Exanite.Networking
 
             WritePacketHandlerDataToCachedWriter(handler, writer);
 
-            var data = new ArraySegment<byte>(writer.Data, 0, writer.Length);
+            var data = new ArraySegment<byte>(cachedWriter.Data, 0, cachedWriter.Length);
             connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
         }
 
@@ -171,7 +171,6 @@ namespace Exanite.Networking
             cachedReader.SetSource(data.Array, data.Offset, data.Offset + data.Count);
 
             var packetHandlerId = cachedReader.GetInt();
-
             if (!packetHandlers.TryGetValue(packetHandlerId, out var packetHandler))
             {
                 return;
