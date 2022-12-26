@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Exanite.Networking.Transports;
 
@@ -5,10 +6,20 @@ namespace Exanite.Networking
 {
     public class ConnectionTracker
     {
-        private Dictionary<int, NetworkConnection> connections = new();
+        private readonly Dictionary<int, NetworkConnection> connections = new();
         private readonly Dictionary<ITransport, Dictionary<int, NetworkConnection>> connectionLookUp = new();
 
+        private readonly ConnectionFactory connectionFactory;
+
+        public ConnectionTracker(ConnectionFactory connectionFactory)
+        {
+            this.connectionFactory = connectionFactory;
+        }
+
         public IReadOnlyDictionary<int, NetworkConnection> Connections => connections;
+
+        public event Action<NetworkConnection> ConnectionAdded;
+        public event Action<NetworkConnection> ConnectionRemoved;
 
         public NetworkConnection GetNetworkConnection(ITransport transport, int transportConnectionId)
         {
@@ -19,6 +30,52 @@ namespace Exanite.Networking
             }
 
             return null;
+        }
+
+        public NetworkConnection AddNetworkConnection(ITransport transport, int transportConnectionId)
+        {
+            var connection = connectionFactory.CreateNetworkConnection(transport, transportConnectionId);
+
+            connections.Add(connection.Id, connection);
+            AddToLookUp(connection);
+
+            ConnectionAdded?.Invoke(connection);
+
+            return connection;
+        }
+
+        public bool RemoveNetworkConnection(ITransport transport, int transportConnectionId)
+        {
+            var connection = GetNetworkConnection(transport, transportConnectionId);
+            if (!RemoveNetworkConnection(connection))
+            {
+                return false;
+            }
+
+            ConnectionRemoved?.Invoke(connection);
+
+            return true;
+        }
+
+        public bool RemoveNetworkConnection(NetworkConnection connection)
+        {
+            if (connection == null)
+            {
+                return false;
+            }
+
+            return connections.Remove(connection.Id);
+        }
+
+        private void AddToLookUp(NetworkConnection connection)
+        {
+            if (!connectionLookUp.TryGetValue(connection.Transport, out var transportConnections))
+            {
+                transportConnections = new Dictionary<int, NetworkConnection>();
+                connectionLookUp.Add(connection.Transport, transportConnections);
+            }
+
+            transportConnections.Add(connection.Id, connection);
         }
     }
 }

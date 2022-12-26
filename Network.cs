@@ -15,7 +15,7 @@ namespace Exanite.Networking
         protected NetDataReader cachedReader;
         protected NetDataWriter cachedWriter;
 
-        private int nextConnectionId;
+        private ConnectionFactory connectionFactory;
 
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
@@ -29,11 +29,21 @@ namespace Exanite.Networking
 
         protected void Awake()
         {
-            connectionTracker = new ConnectionTracker();
+            connectionFactory = new ConnectionFactory();
+            connectionTracker = new ConnectionTracker(connectionFactory);
             packetHandlers = new Dictionary<int, IPacketHandler>();
 
             cachedReader = new NetDataReader();
             cachedWriter = new NetDataWriter();
+
+            connectionTracker.ConnectionAdded += OnConnectionAdded;
+            connectionTracker.ConnectionRemoved += OnConnectionRemoved;
+        }
+
+        private void OnDestroy()
+        {
+            connectionTracker.ConnectionAdded -= OnConnectionAdded;
+            connectionTracker.ConnectionRemoved -= OnConnectionRemoved;
         }
 
         public abstract UniTask StartConnection();
@@ -85,29 +95,24 @@ namespace Exanite.Networking
             }
         }
 
-        protected virtual NetworkConnection AddNetworkConnection(ITransport transport, int transportConnectionId)
+        protected virtual void OnConnectionAdded(NetworkConnection connection)
         {
-            var connection = new NetworkConnection(nextConnectionId, transport, transportConnectionId);
-
-            nextConnectionId++;
-
-            return connection;
+            ConnectionStarted?.Invoke(this, connection);
         }
 
-        protected virtual void RemoveNetworkConnection(NetworkConnection connection)
+        protected virtual void OnConnectionRemoved(NetworkConnection connection)
         {
-
+            ConnectionStopped?.Invoke(this, connection);
         }
 
         protected virtual void Transport_OnConnectionStarted(ITransport transport, int transportConnectionId)
         {
-            AddNetworkConnection(transport, transportConnectionId);
+            connectionTracker.AddNetworkConnection(transport, transportConnectionId);
         }
 
         protected virtual void Transport_OnConnectionStopped(ITransport transport, int transportConnectionId)
         {
-            var connection = connectionTracker.GetNetworkConnection(transport, transportConnectionId);
-            RemoveNetworkConnection(connection);
+            connectionTracker.RemoveNetworkConnection(transport, transportConnectionId);
         }
 
         protected virtual void Transport_OnReceivedData(ITransport transport, int transportConnectionId, ArraySegment<byte> data, SendType sendType)
