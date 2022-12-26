@@ -24,7 +24,6 @@ namespace Exanite.Networking
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
         public IReadOnlyDictionary<int, NetworkConnection> Connections => connectionTracker.Connections;
 
-        // Todo Need to guarantee connection/disconnect events are called in pairs
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
 

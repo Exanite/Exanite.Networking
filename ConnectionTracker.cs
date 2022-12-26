@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Exanite.Networking.Transports;
 
 namespace Exanite.Networking
@@ -47,24 +48,32 @@ namespace Exanite.Networking
         public bool RemoveNetworkConnection(ITransport transport, int transportConnectionId)
         {
             var connection = GetNetworkConnection(transport, transportConnectionId);
-            if (!RemoveNetworkConnection(connection))
-            {
-                return false;
-            }
 
-            ConnectionRemoved?.Invoke(connection);
-
-            return true;
+            return RemoveNetworkConnection(connection.Id);
         }
 
-        public bool RemoveNetworkConnection(NetworkConnection connection)
+        public bool RemoveNetworkConnection(int connectionId)
         {
-            if (connection == null)
+            if (connections.TryGetValue(connectionId, out var connection))
             {
-                return false;
+                connections.Remove(connectionId);
+                ConnectionRemoved?.Invoke(connection);
+
+                return true;
             }
 
-            return connections.Remove(connection.Id);
+            return false;
+        }
+
+        public void Clear()
+        {
+            connectionLookUp.Clear();
+
+            var idsToRemove = connections.Keys.ToList();
+            foreach (var connectionId in idsToRemove)
+            {
+                RemoveNetworkConnection(connectionId);
+            }
         }
 
         private void AddToLookUp(NetworkConnection connection)
