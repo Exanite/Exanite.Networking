@@ -5,7 +5,7 @@ using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
-    public class NetworkClient : Network
+    public class NetworkClient : Network, INetworkClient
     {
         [OdinSerialize] private ITransportClient transport;
 

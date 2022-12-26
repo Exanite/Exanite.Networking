@@ -6,7 +6,7 @@ using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
-    public class NetworkServer : Network
+    public class NetworkServer : Network, INetworkServer
     {
         [OdinSerialize] private List<ITransportServer> transports = new();
 

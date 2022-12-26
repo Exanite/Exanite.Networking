@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 
 namespace Exanite.Networking
 {
-    public abstract class Network : SerializedMonoBehaviour
+    public abstract class Network : SerializedMonoBehaviour, INetwork
     {
         protected ConnectionTracker connectionTracker;
         protected Dictionary<int, IPacketHandler> packetHandlers;
@@ -140,7 +140,7 @@ namespace Exanite.Networking
                 return;
             }
 
-            packetHandler.OnReceive(connection, cachedReader, sendType);
+            packetHandler.OnReceive(this, connection, cachedReader, sendType);
         }
 
         protected virtual void RegisterTransportEvents(ITransport transport)

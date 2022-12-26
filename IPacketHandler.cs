@@ -6,6 +6,6 @@ namespace Exanite.Networking
     {
         int HandlerId { get; }
 
-        void OnReceive(NetworkConnection connection, NetDataReader reader, SendType sendType);
+        void OnReceive(INetwork network, NetworkConnection connection, NetDataReader reader, SendType sendType);
     }
 }
