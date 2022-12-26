@@ -10,13 +10,15 @@ namespace Exanite.Networking
 {
     public abstract class Network : MonoBehaviour
     {
+        protected LocalConnectionStatus status;
+
         protected Dictionary<int, IPacketHandler> packetHandlers;
         protected NetDataWriter cachedWriter;
 
-        public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
-
-        public abstract LocalConnectionStatus Status { get; }
+        public LocalConnectionStatus Status => status;
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
+
+        public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
 
         protected void Awake()
         {
@@ -69,13 +71,10 @@ namespace Exanite.Networking
     {
         [OdinSerialize] private List<ITransportServer> transports = new();
 
-        private LocalConnectionStatus status;
         private Dictionary<int, NetworkConnection> connections = new();
 
         public IReadOnlyList<ITransportServer> Transports => transports;
         public IReadOnlyDictionary<int, NetworkConnection> Connections => connections;
-
-        public override LocalConnectionStatus Status => status;
 
         public override async UniTask StartConnection()
         {
@@ -111,16 +110,12 @@ namespace Exanite.Networking
     {
         [OdinSerialize] private ITransportClient transport;
 
-        private LocalConnectionStatus status;
-
         public ITransportClient Transport => transport;
 
         public void SetTransport(ITransportClient transport)
         {
             this.transport = transport;
         }
-
-        public override LocalConnectionStatus Status => status;
 
         public override async UniTask StartConnection()
         {

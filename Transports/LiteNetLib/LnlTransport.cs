@@ -17,7 +17,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected EventBasedNetListener listener;
         protected NetManager netManager;
-        protected Dictionary<int, IPacketHandler> packetHandlers;
 
         public string ConnectionKey
         {
@@ -27,13 +26,12 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public LocalConnectionStatus Status => throw new NotImplementedException();
 
-        public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
+        public event ReceivedDataEvent ReceivedData;
 
         protected virtual void Awake()
         {
             listener = new EventBasedNetListener();
             netManager = new NetManager(listener);
-            packetHandlers = new Dictionary<int, IPacketHandler>();
 
             listener.PeerConnectedEvent += OnPeerConnected;
             listener.PeerDisconnectedEvent += OnPeerDisconnected;
@@ -48,7 +46,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             listener.PeerDisconnectedEvent -= OnPeerDisconnected;
             listener.PeerConnectedEvent -= OnPeerConnected;
         }
-
 
         public void Tick()
         {
@@ -79,14 +76,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
         {
-            var packetHandlerId = reader.GetInt();
-
-            if (!packetHandlers.TryGetValue(packetHandlerId, out var packetHandler))
-            {
-                return;
-            }
-
-            packetHandler.OnReceive(peer, reader, deliveryMethod.ToDeliveryMethod());
+            var data = new ArraySegment<byte>(reader.RawData, reader.Position, reader.AvailableBytes);
+            ReceivedData?.Invoke(this, peer.Id, data, deliveryMethod.ToSendType());
         }
 
         protected abstract void OnPeerConnected(NetPeer peer);

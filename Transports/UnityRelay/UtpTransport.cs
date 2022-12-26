@@ -16,6 +16,8 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public LocalConnectionStatus Status => throw new NotImplementedException();
 
+        public event ReceivedDataEvent ReceivedData;
+
         public void Tick()
         {
             Driver.ScheduleUpdate().Complete();
