@@ -16,6 +16,7 @@ namespace Exanite.Networking
         protected NetDataWriter cachedWriter;
 
         private ConnectionFactory connectionFactory;
+        private bool hasNotifiedPacketHandlersOfStart;
 
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
@@ -48,6 +49,11 @@ namespace Exanite.Networking
 
         protected virtual void FixedUpdate()
         {
+            if (Status == LocalConnectionStatus.Started && !AreTransportsAllStarted())
+            {
+                StopConnection();
+            }
+
             Tick();
         }
 
@@ -85,16 +91,30 @@ namespace Exanite.Networking
             cachedWriter.Put(writer.Data, 0, writer.Length);
         }
 
-        protected virtual void NotifyPacketHandlers_NetworkStarted()
+        protected void NotifyPacketHandlers_NetworkStarted()
         {
+            if (hasNotifiedPacketHandlersOfStart)
+            {
+                return;
+            }
+
+            hasNotifiedPacketHandlersOfStart = true;
+
             foreach (var (_, packetHandler) in packetHandlers)
             {
                 packetHandler.OnNetworkStarted(this);
             }
         }
 
-        protected virtual void NotifyPacketHandlers_NetworkStopped()
+        protected void NotifyPacketHandlers_NetworkStopped()
         {
+            if (!hasNotifiedPacketHandlersOfStart)
+            {
+                return;
+            }
+
+            hasNotifiedPacketHandlersOfStart = false;
+
             foreach (var (_, packetHandler) in packetHandlers)
             {
                 packetHandler.OnNetworkStopped(this);
@@ -117,6 +137,8 @@ namespace Exanite.Networking
                 case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType().Name} is already started.");
             }
         }
+
+        protected abstract bool AreTransportsAllStarted();
 
         protected virtual void OnConnectionAdded(NetworkConnection connection)
         {

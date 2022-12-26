@@ -62,5 +62,18 @@ namespace Exanite.Networking
 
             NotifyPacketHandlers_NetworkStopped();
         }
+
+        protected override bool AreTransportsAllStarted()
+        {
+            foreach (var transport in transports)
+            {
+                if (transport.Status != LocalConnectionStatus.Started)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

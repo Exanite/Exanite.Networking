@@ -9,6 +9,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
         {
             netManager.Start(Port);
 
+            Status = LocalConnectionStatus.Started;
+
             return UniTask.CompletedTask;
         }
 
