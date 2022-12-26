@@ -17,6 +17,6 @@ namespace Exanite.Networking
         public ITransport Transport { get; }
         public int TransportConnectionId { get; }
 
-        public RemoteConnectionStatus Status => Transport.GetConnectionStatus(this);
+        public RemoteConnectionStatus Status => Transport.GetConnectionStatus(TransportConnectionId);
     }
 }

@@ -17,7 +17,7 @@ namespace Exanite.Networking.Transports
         public UniTask StartConnection();
         public void StopConnection();
 
-        RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection);
+        RemoteConnectionStatus GetConnectionStatus(int connectionId);
 
         void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);
     }

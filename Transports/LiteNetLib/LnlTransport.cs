@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LiteNetLib;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected EventBasedNetListener listener;
         protected NetManager netManager;
+
+        protected Dictionary<int, NetPeer> connections;
 
         public string ConnectionKey
         {
@@ -42,6 +45,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
         {
             listener = new EventBasedNetListener();
             netManager = new NetManager(listener);
+
+            connections = new Dictionary<int, NetPeer>();
 
             listener.PeerConnectedEvent += OnPeerConnected;
             listener.PeerDisconnectedEvent += OnPeerDisconnected;
@@ -85,16 +90,19 @@ namespace Exanite.Networking.Transports.LiteNetLib
             Status = LocalConnectionStatus.Stopped;
         }
 
-        public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
+        public RemoteConnectionStatus GetConnectionStatus(int connectionId)
         {
-            throw new NotImplementedException();
+            return connections.ContainsKey(connectionId) ? RemoteConnectionStatus.Started : RemoteConnectionStatus.Stopped;
         }
 
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType)
         {
-            // peer.Send(data.Array, data.Offset, data.Count, sendType.ToLnlDeliveryMethod());
+            if (!connections.TryGetValue(connectionId, out var peer))
+            {
+                return;
+            }
 
-            throw new NotImplementedException();
+            peer.Send(data.Array, data.Offset, data.Count, sendType.ToDeliveryMethod());
         }
 
         protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)

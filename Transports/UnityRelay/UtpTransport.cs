@@ -32,7 +32,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             Driver.Dispose();
         }
 
-        public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
+        public RemoteConnectionStatus GetConnectionStatus(int connectionId)
         {
             throw new NotImplementedException();
         }
