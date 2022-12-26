@@ -167,7 +167,6 @@ namespace Exanite.Networking
                 return;
             }
 
-            // Todo Check for accuracy, not sure what maxSize is
             cachedReader.SetSource(data.Array, data.Offset, data.Offset + data.Count);
 
             var packetHandlerId = cachedReader.GetInt();
