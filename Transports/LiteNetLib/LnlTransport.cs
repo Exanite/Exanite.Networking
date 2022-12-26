@@ -6,7 +6,6 @@ using Exanite.Core.Events;
 using Exanite.Networking.Client;
 using Exanite.Networking.Server;
 using LiteNetLib;
-using LiteNetLib.Utils;
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
@@ -26,7 +25,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
             set => connectionKey = value;
         }
 
-        public abstract bool IsReady { get; }
+        public LocalConnectionStatus Status => throw new NotImplementedException();
+
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
 
         protected virtual void Awake()
@@ -49,9 +49,20 @@ namespace Exanite.Networking.Transports.LiteNetLib
             listener.PeerConnectedEvent -= OnPeerConnected;
         }
 
+
         public void Tick()
         {
             netManager.PollEvents();
+        }
+
+        public UniTask StartConnection()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StopConnection()
+        {
+            throw new NotImplementedException();
         }
 
         public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
@@ -92,7 +103,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
         public NetPeer Server { get; private set; }
 
         public LocalConnectionStatus Status { get; private set; }
-        public override bool IsReady => Status == LocalConnectionStatus.Started;
 
         public event EventHandler<LnlTransportClient, ClientConnectedEventArgs> Connected;
         public event EventHandler<LnlTransportClient, ClientDisconnectedEventArgs> Disconnected;
@@ -176,7 +186,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
         public IReadOnlyList<NetPeer> ConnectedPeers => connectedPeers;
 
         public bool IsCreated { get; private set; }
-        public override bool IsReady => IsCreated;
 
         public event EventHandler<LnlTransportServer, PeerConnectedEventArgs> PeerConnected;
         public event EventHandler<LnlTransportServer, PeerDisconnectedEventArgs> PeerDisconnected;

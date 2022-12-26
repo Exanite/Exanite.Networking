@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
 using LiteNetLib.Utils;
+using Sirenix.Serialization;
 using UnityEngine;
 
 namespace Exanite.Networking
@@ -13,13 +15,18 @@ namespace Exanite.Networking
 
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
 
-        public abstract bool IsReady { get; }
+        public abstract LocalConnectionStatus Status { get; }
+        public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
         protected void Awake()
         {
             packetHandlers = new Dictionary<int, IPacketHandler>();
             cachedWriter = new NetDataWriter();
         }
+
+        public abstract UniTask StartConnection();
+
+        public abstract void StopConnection();
 
         public void RegisterPacketHandler(IPacketHandler handler)
         {
@@ -60,24 +67,82 @@ namespace Exanite.Networking
 
     public class NetworkServer : Network
     {
-        private readonly Dictionary<int, NetworkConnection> connections = new();
+        [OdinSerialize] private List<ITransportServer> transports = new();
 
+        private LocalConnectionStatus status;
+        private Dictionary<int, NetworkConnection> connections = new();
+
+        public IReadOnlyList<ITransportServer> Transports => transports;
         public IReadOnlyDictionary<int, NetworkConnection> Connections => connections;
 
-        public override bool IsReady => throw new NotImplementedException();
+        public override LocalConnectionStatus Status => status;
+
+        public override async UniTask StartConnection()
+        {
+            status = LocalConnectionStatus.Starting;
+
+            try
+            {
+                foreach (var transport in transports)
+                {
+                    await transport.StartConnection();
+                }
+            }
+            catch
+            {
+                StopConnection();
+            }
+
+            status = LocalConnectionStatus.Started;
+        }
+
+        public override void StopConnection()
+        {
+            foreach (var transport in transports)
+            {
+                transport.StopConnection();
+            }
+
+            status = LocalConnectionStatus.Stopped;
+        }
     }
 
     public class NetworkClient : Network
     {
-        public ITransportClient SelectedTransport { get; private set; }
+        [OdinSerialize] private ITransportClient transport;
 
-        public NetworkConnection Server { get; private set; }
+        private LocalConnectionStatus status;
+
+        public ITransportClient Transport => transport;
 
         public void SetTransport(ITransportClient transport)
         {
-            SelectedTransport = transport;
+            this.transport = transport;
         }
 
-        public override bool IsReady => throw new NotImplementedException();
+        public override LocalConnectionStatus Status => status;
+
+        public override async UniTask StartConnection()
+        {
+            status = LocalConnectionStatus.Starting;
+
+            try
+            {
+                await transport.StartConnection();
+            }
+            catch
+            {
+                StopConnection();
+            }
+
+            status = LocalConnectionStatus.Started;
+        }
+
+        public override void StopConnection()
+        {
+            transport.StopConnection();
+
+            status = LocalConnectionStatus.Stopped;
+        }
     }
 }

@@ -14,9 +14,18 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         [Inject] protected IRelayService RelayService;
 
+        public LocalConnectionStatus Status => throw new NotImplementedException();
+
         public void Tick()
         {
             Driver.ScheduleUpdate().Complete();
+        }
+
+        public abstract UniTask StartConnection();
+
+        public void StopConnection()
+        {
+            Driver.Dispose();
         }
 
         public RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection)
@@ -32,7 +41,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
     public class UtpTransportClient : UtpTransport, ITransportClient
     {
-        public async UniTask StartConnection()
+        public override async UniTask StartConnection()
         {
             var allocation = await RelayService.CreateAllocationAsync(2);
 
@@ -54,17 +63,11 @@ namespace Exanite.Networking.Transports.UnityRelay
                 throw new Exception("Failed to start listening to connections");
             }
         }
-
-        public void StopConnection()
-        {
-            Driver.Dispose();
-        }
-
     }
 
     public class UtpTransportServer : UtpTransport, ITransportServer
     {
-        public async UniTask StartConnection()
+        public override async UniTask StartConnection()
         {
             var allocation = await RelayService.CreateAllocationAsync(2);
 
@@ -87,11 +90,6 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
 
             Debug.Log("Yee connected!");
-        }
-
-        public void StopConnection()
-        {
-            Driver.Dispose();
         }
     }
 }
