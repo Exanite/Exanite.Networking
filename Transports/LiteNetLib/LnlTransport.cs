@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Net;
 using Cysharp.Threading.Tasks;
-using Exanite.Core.Events;
-using Exanite.Networking.Client;
-using Exanite.Networking.Server;
 using LiteNetLib;
 using UnityEngine;
 
@@ -81,22 +78,21 @@ namespace Exanite.Networking.Transports.LiteNetLib
             ReceivedData?.Invoke(this, peer.Id, data, deliveryMethod.ToSendType());
         }
 
-        protected abstract void OnPeerConnected(NetPeer peer);
+        protected virtual void OnPeerConnected(NetPeer peer)
+        {
+            ConnectionStarted?.Invoke(this, peer.Id);
+        }
 
-        protected abstract void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo);
+        protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
+        {
+            ConnectionStopped?.Invoke(this, peer.Id);
+        }
 
         protected abstract void OnConnectionRequest(ConnectionRequest request);
     }
 
     public class LnlTransportClient : LnlTransport, ITransportClient
     {
-        private DisconnectInfo previousDisconnectInfo;
-
-        public NetPeer Server { get; private set; }
-
-        public event EventHandler<LnlTransportClient, ClientConnectedEventArgs> Connected;
-        public event EventHandler<LnlTransportClient, ClientDisconnectedEventArgs> Disconnected;
-
         protected override void OnDestroy()
         {
             StopConnection(false);
@@ -104,7 +100,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             base.OnDestroy();
         }
 
-        public async UniTask<ClientConnectResult> StartConnection(IPEndPoint endPoint)
+        public async UniTask StartConnection(IPEndPoint endPoint)
         {
             Status = LocalConnectionStatus.Starting;
 
@@ -113,7 +109,10 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
             await UniTask.WaitUntil(() => Status != LocalConnectionStatus.Starting);
 
-            return new ClientConnectResult(Status == LocalConnectionStatus.Started, previousDisconnectInfo.Reason.ToString());
+            if (Status != LocalConnectionStatus.Started)
+            {
+                throw new Exception("Failed to connect.");
+            }
         }
 
         public void StopConnection()
@@ -135,26 +134,23 @@ namespace Exanite.Networking.Transports.LiteNetLib
             Status = LocalConnectionStatus.Stopped;
         }
 
-        protected override void OnPeerConnected(NetPeer server)
+        protected override void OnPeerConnected(NetPeer peer)
         {
-            Connected?.Invoke(this, new ClientConnectedEventArgs(server));
-
             Status = LocalConnectionStatus.Started;
 
-            Server = server;
+            base.OnPeerConnected(peer);
         }
 
-        protected override void OnPeerDisconnected(NetPeer server, DisconnectInfo disconnectInfo)
+        protected override void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             if (Status == LocalConnectionStatus.Started)
             {
-                Disconnected?.Invoke(this, new ClientDisconnectedEventArgs(server, disconnectInfo));
+                Status = LocalConnectionStatus.Stopped;
+
+                base.OnPeerDisconnected(peer, disconnectInfo);
             }
 
             Status = LocalConnectionStatus.Stopped;
-
-            Server = null;
-            previousDisconnectInfo = disconnectInfo;
         }
 
         protected override void OnConnectionRequest(ConnectionRequest request)
@@ -170,9 +166,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
         public IReadOnlyList<NetPeer> ConnectedPeers => connectedPeers;
 
         public bool IsCreated { get; private set; }
-
-        public event EventHandler<LnlTransportServer, PeerConnectedEventArgs> PeerConnected;
-        public event EventHandler<LnlTransportServer, PeerDisconnectedEventArgs> PeerDisconnected;
 
         protected override void OnDestroy()
         {
@@ -220,20 +213,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             netManager.Stop();
 
             IsCreated = false;
-        }
-
-        protected override void OnPeerConnected(NetPeer peer)
-        {
-            connectedPeers.Add(peer);
-
-            PeerConnected?.Invoke(this, new PeerConnectedEventArgs(peer));
-        }
-
-        protected override void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
-        {
-            connectedPeers.Remove(peer);
-
-            PeerDisconnected?.Invoke(this, new PeerDisconnectedEventArgs(peer, disconnectInfo));
         }
 
         protected override void OnConnectionRequest(ConnectionRequest request)
