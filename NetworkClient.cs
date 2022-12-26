@@ -10,7 +10,7 @@ namespace Exanite.Networking
         [OdinSerialize] private ITransportClient transport;
 
         public ITransportClient Transport => transport;
-        public NetworkConnection Server => connectionTracker.Connections.Values.FirstOrDefault();
+        public NetworkConnection ServerConnection => connectionTracker.Connections.Values.FirstOrDefault();
 
         public override void Tick()
         {

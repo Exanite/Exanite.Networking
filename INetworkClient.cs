@@ -5,6 +5,6 @@ namespace Exanite.Networking
     public interface INetworkClient : INetwork
     {
         public ITransportClient Transport { get; }
-        public NetworkConnection Server { get; }
+        public NetworkConnection ServerConnection { get; }
     }
 }
