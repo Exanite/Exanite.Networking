@@ -12,8 +12,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
 {
     public abstract class LnlTransport : MonoBehaviour, ITransport
     {
-        [SerializeField]
-        protected string connectionKey = Constants.DefaultConnectionKey;
+        [SerializeField] protected string connectionKey = Constants.DefaultConnectionKey;
 
         protected EventBasedNetListener listener;
         protected NetManager netManager;
@@ -69,7 +68,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             throw new NotImplementedException();
         }
 
-        public void SendData(ITransport connectionId, ArraySegment<byte> data, SendType sendType)
+        public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType)
         {
             // peer.Send(data.Array, data.Offset, data.Count, sendType.ToLnlDeliveryMethod());
 

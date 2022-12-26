@@ -19,7 +19,7 @@ namespace Exanite.Networking.Transports
 
         RemoteConnectionStatus GetConnectionStatus(NetworkConnection networkConnection);
 
-        void SendData(ITransport connectionId, ArraySegment<byte> data, SendType sendType);
+        void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);
     }
 
     public interface ITransportServer : ITransport {}
