@@ -26,7 +26,9 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event ReceivedDataEvent ReceivedData;
+        public event TransportReceivedDataEvent ReceivedData;
+        public event TransportConnectionStartedEvent ConnectionStarted;
+        public event TransportConnectionStartedEvent ConnectionStopped;
 
         protected virtual void Awake()
         {

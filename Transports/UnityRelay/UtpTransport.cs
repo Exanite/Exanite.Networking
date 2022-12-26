@@ -16,7 +16,9 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event ReceivedDataEvent ReceivedData;
+        public event TransportReceivedDataEvent ReceivedData;
+        public event TransportConnectionStartedEvent ConnectionStarted;
+        public event TransportConnectionStartedEvent ConnectionStopped;
 
         public void Tick()
         {

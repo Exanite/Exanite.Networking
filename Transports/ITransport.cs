@@ -8,7 +8,9 @@ namespace Exanite.Networking.Transports
         public LocalConnectionStatus Status { get; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
-        public event ReceivedDataEvent ReceivedData;
+        public event TransportReceivedDataEvent ReceivedData;
+        public event TransportConnectionStartedEvent ConnectionStarted;
+        public event TransportConnectionStartedEvent ConnectionStopped;
 
         public void Tick();
 

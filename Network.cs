@@ -8,6 +8,8 @@ using UnityEngine;
 
 namespace Exanite.Networking
 {
+    // Todo Add connect/disconnect events
+    // Todo Need to guarantee connection/disconnect events are called
     public abstract class Network : MonoBehaviour
     {
         protected Dictionary<int, NetworkConnection> connections;
@@ -105,6 +107,7 @@ namespace Exanite.Networking
 
         protected virtual void CleanUp()
         {
+            // Todo Should be empty already, need to make sure though
             connections.Clear();
         }
     }
