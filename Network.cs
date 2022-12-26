@@ -69,7 +69,7 @@ namespace Exanite.Networking
             switch (Status)
             {
                 case LocalConnectionStatus.Starting: throw new InvalidOperationException($"{GetType().Name} is already starting.");
-                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType().Name}Network is already started.");
+                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType().Name} is already started.");
             }
         }
     }
