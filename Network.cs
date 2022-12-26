@@ -85,6 +85,22 @@ namespace Exanite.Networking
             cachedWriter.Put(writer.Data, 0, writer.Length);
         }
 
+        protected virtual void NotifyPacketHandlers_NetworkStarted()
+        {
+            foreach (var (_, packetHandler) in packetHandlers)
+            {
+                packetHandler.OnNetworkStarted(this);
+            }
+        }
+
+        protected virtual void NotifyPacketHandlers_NetworkStopped()
+        {
+            foreach (var (_, packetHandler) in packetHandlers)
+            {
+                packetHandler.OnNetworkStopped(this);
+            }
+        }
+
         protected void ValidateIsReadyToSend()
         {
             if (!IsReady)

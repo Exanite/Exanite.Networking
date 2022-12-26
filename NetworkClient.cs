@@ -42,6 +42,8 @@ namespace Exanite.Networking
             }
 
             Status = LocalConnectionStatus.Started;
+
+            NotifyPacketHandlers_NetworkStarted();
         }
 
         public override void StopConnection()
@@ -51,6 +53,8 @@ namespace Exanite.Networking
             UnregisterTransportEvents(transport);
 
             Status = LocalConnectionStatus.Stopped;
+
+            NotifyPacketHandlers_NetworkStopped();
         }
     }
 }
