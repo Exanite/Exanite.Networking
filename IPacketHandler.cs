@@ -1,4 +1,4 @@
-﻿using LiteNetLib;
+﻿using LiteNetLib.Utils;
 
 namespace Exanite.Networking
 {
@@ -6,6 +6,6 @@ namespace Exanite.Networking
     {
         int HandlerId { get; }
 
-        void OnReceive(NetPeer peer, NetPacketReader reader, SendType sendType);
+        void OnReceive(NetworkConnection connection, NetDataReader reader, SendType sendType);
     }
 }
