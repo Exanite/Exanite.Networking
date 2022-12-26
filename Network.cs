@@ -65,6 +65,11 @@ namespace Exanite.Networking
         public void RegisterPacketHandler(IPacketHandler handler)
         {
             packetHandlers.Add(handler.HandlerId, handler);
+
+            if (Status == LocalConnectionStatus.Started)
+            {
+                handler.OnNetworkStarted(this);
+            }
         }
 
         public void UnregisterPacketHandler(IPacketHandler handler)
