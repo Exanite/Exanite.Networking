@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LiteNetLib;
 using UnityEngine;
@@ -161,10 +160,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
     public class LnlTransportServer : LnlTransport, ITransportServer
     {
-        private readonly List<NetPeer> connectedPeers = new();
-
-        public IReadOnlyList<NetPeer> ConnectedPeers => connectedPeers;
-
         public override UniTask StartConnection()
         {
             netManager.Start(Port);
@@ -176,7 +171,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
         {
             netManager.DisconnectPeer(peer);
         }
-
 
         protected override void OnConnectionRequest(ConnectionRequest request)
         {
