@@ -113,11 +113,15 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected virtual void OnPeerConnected(NetPeer peer)
         {
+            connections.Add(peer.Id, peer);
+
             ConnectionStarted?.Invoke(this, peer.Id);
         }
 
         protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
+            connections.Remove(peer.Id);
+
             ConnectionStopped?.Invoke(this, peer.Id);
         }
 
