@@ -14,11 +14,6 @@ namespace Exanite.Networking.Transports.LiteNetLib
             return UniTask.CompletedTask;
         }
 
-        public void DisconnectPeer(NetPeer peer)
-        {
-            netManager.DisconnectPeer(peer);
-        }
-
         protected override void OnConnectionRequest(ConnectionRequest request)
         {
             request.AcceptIfKey(ConnectionKey);

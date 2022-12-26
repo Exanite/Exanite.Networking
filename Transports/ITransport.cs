@@ -17,9 +17,10 @@ namespace Exanite.Networking.Transports
         public UniTask StartConnection();
         public void StopConnection();
 
-        RemoteConnectionStatus GetConnectionStatus(int connectionId);
+        public RemoteConnectionStatus GetConnectionStatus(int connectionId);
+        public void DisconnectConnection(int connectionId);
 
-        void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);
+        public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);
     }
 
     public interface ITransportServer : ITransport {}

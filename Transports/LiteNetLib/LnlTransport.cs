@@ -95,6 +95,14 @@ namespace Exanite.Networking.Transports.LiteNetLib
             return connections.ContainsKey(connectionId) ? RemoteConnectionStatus.Started : RemoteConnectionStatus.Stopped;
         }
 
+        public void DisconnectConnection(int connectionId)
+        {
+            if (connections.TryGetValue(connectionId, out var connection))
+            {
+                connection.Disconnect();
+            }
+        }
+
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType)
         {
             if (!connections.TryGetValue(connectionId, out var peer))

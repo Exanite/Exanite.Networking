@@ -37,6 +37,11 @@ namespace Exanite.Networking.Transports.UnityRelay
             throw new NotImplementedException();
         }
 
+        public void DisconnectConnection(int connectionId)
+        {
+            throw new NotImplementedException();
+        }
+
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType)
         {
             throw new NotImplementedException();
