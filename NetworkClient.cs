@@ -1,13 +1,14 @@
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
+using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
     public class NetworkClient : Network, INetworkClient
     {
-        [OdinSerialize] private ITransportClient transport;
+        [Required] [OdinSerialize] private ITransportClient transport;
 
         public ITransportClient Transport => transport;
         public NetworkConnection ServerConnection => connectionTracker.Connections.Values.FirstOrDefault();

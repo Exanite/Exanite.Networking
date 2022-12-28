@@ -11,7 +11,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             Status = LocalConnectionStatus.Starting;
 
             netManager.Start();
-            netManager.Connect(RemoteAddress, Port, ConnectionKey);
+            netManager.Connect(Settings.RemoteAddress, Settings.Port, Settings.ConnectionKey);
 
             await UniTask.WaitUntil(() => Status != LocalConnectionStatus.Starting);
 

@@ -2,38 +2,22 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LiteNetLib;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
     public abstract class LnlTransport : MonoBehaviour, ITransport
     {
-        [SerializeField] protected string connectionKey = Constants.DefaultConnectionKey;
-        [SerializeField] private string remoteAddress = Constants.DefaultRemoteAddress;
-        [SerializeField] private ushort port = Constants.DefaultPort;
+        [Header("Dependencies")]
+        [Required] [SerializeField] private LnlTransportSettings settings;
 
         protected EventBasedNetListener listener;
         protected NetManager netManager;
 
         protected Dictionary<int, NetPeer> connections;
 
-        public string ConnectionKey
-        {
-            get => connectionKey;
-            set => connectionKey = value;
-        }
-
-        public string RemoteAddress
-        {
-            get => remoteAddress;
-            set => remoteAddress = value;
-        }
-
-        public ushort Port
-        {
-            get => port;
-            set => port = value;
-        }
+        public LnlTransportSettings Settings => settings;
 
         public LocalConnectionStatus Status { get; protected set; }
 

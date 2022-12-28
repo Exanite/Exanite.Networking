@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UniDi;
 using Unity.Networking.Transport;
 using Unity.Services.Relay;
@@ -9,9 +10,14 @@ namespace Exanite.Networking.Transports.UnityRelay
 {
     public abstract class UtpTransport : MonoBehaviour, ITransport
     {
+        [Header("Dependencies")]
+        [Required] [SerializeField] private UtpTransportSettings settings;
+
         protected NetworkDriver Driver;
 
         [Inject] protected IRelayService RelayService;
+
+        public UtpTransportSettings Settings => settings;
 
         public LocalConnectionStatus Status { get; protected set; }
 

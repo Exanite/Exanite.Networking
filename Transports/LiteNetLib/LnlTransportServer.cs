@@ -7,7 +7,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
     {
         public override UniTask StartConnection()
         {
-            netManager.Start(Port);
+            netManager.Start(Settings.Port);
 
             Status = LocalConnectionStatus.Started;
 
@@ -16,7 +16,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected override void OnConnectionRequest(ConnectionRequest request)
         {
-            request.AcceptIfKey(ConnectionKey);
+            request.AcceptIfKey(Settings.ConnectionKey);
         }
     }
 }

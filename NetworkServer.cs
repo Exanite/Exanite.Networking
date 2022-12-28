@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
+using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
     public class NetworkServer : Network, INetworkServer
     {
-        [OdinSerialize] private List<ITransportServer> transports = new();
+        [Required] [OdinSerialize] private List<ITransportServer> transports = new();
 
         public IReadOnlyList<ITransportServer> Transports => transports;
 
