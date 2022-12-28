@@ -21,7 +21,8 @@ namespace Exanite.Networking.Transports.UnityRelay
             await CreateAndBindNetworkDriver(networkSettings);
             CreateNetworkPipelines();
 
-            Driver.Connect(relayData.Endpoint);
+            var serverConnection = Driver.Connect(relayData.Endpoint);
+            OnConnectionStarted(serverConnection);
 
             Status = LocalConnectionStatus.Started;
         }
