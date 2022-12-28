@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UniDi;
+using Unity.Collections;
 using Unity.Networking.Transport;
+using Unity.Networking.Transport.Error;
 using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using UnityEngine;
@@ -21,6 +23,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected NetworkPipeline UnreliablePipeline;
 
         protected Dictionary<int, UnityNetworkConnection> connections;
+        protected List<UnityNetworkConnection> connectionsToRemoveCache;
 
         [Inject] protected IRelayService RelayService;
         [Inject] protected IAuthenticationService AuthenticationService;
@@ -33,6 +36,12 @@ namespace Exanite.Networking.Transports.UnityRelay
         public event TransportConnectionStartedEvent ConnectionStarted;
         public event TransportConnectionStartedEvent ConnectionStopped;
 
+        private void Awake()
+        {
+            connections = new Dictionary<int, UnityNetworkConnection>();
+            connectionsToRemoveCache = new List<UnityNetworkConnection>();
+        }
+
         private void OnDestroy()
         {
             StopConnection(false);
@@ -40,10 +49,64 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public void Tick()
         {
-            if (Status == LocalConnectionStatus.Started)
+            // Based off of https://github.com/FirstGearGames/FishyUTP/blob/eadc7bcde37db9670192c02f72a37294861e0288/FishNet/Plugins/FishyUTP/Core/UtpServer.cs#L193
+            if (Status != LocalConnectionStatus.Started)
             {
-                Driver.ScheduleUpdate().Complete();
+                return;
             }
+
+            Driver.ScheduleUpdate().Complete();
+
+            RemoveDisconnectedConnections();
+
+            UnityNetworkConnection incomingConnection;
+            while ((incomingConnection = Driver.Accept()) != default)
+            {
+                OnConnectionStarted(incomingConnection);
+            }
+
+            foreach (var connection in connections.Values)
+            {
+                NetworkEvent.Type networkEvent;
+                while ((networkEvent = Driver.PopEventForConnection(connection, out var stream, out var pipeline)) != NetworkEvent.Type.Empty)
+                {
+                    switch (networkEvent)
+                    {
+                        case NetworkEvent.Type.Data:
+                        {
+                            OnNetworkReceive(stream, connection, pipeline);
+
+                            break;
+                        }
+                        case NetworkEvent.Type.Disconnect:
+                        {
+                            DisconnectConnection(connection.InternalId);
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RemoveDisconnectedConnections()
+        {
+            connectionsToRemoveCache.Clear();
+
+            foreach (var connection in connections.Values)
+            {
+                if (!connection.IsCreated)
+                {
+                    connectionsToRemoveCache.Add(connection);
+                }
+            }
+
+            foreach (var connection in connectionsToRemoveCache)
+            {
+                OnConnectionStopped(connection);
+            }
+
+            connectionsToRemoveCache.Clear();
         }
 
         public abstract UniTask StartConnection();
@@ -75,7 +138,26 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType)
         {
-            throw new NotImplementedException();
+            if (!connections.TryGetValue(connectionId, out var connection))
+            {
+                return;
+            }
+
+            // From https://github.com/FirstGearGames/FishyUTP/blob/main/FishNet/Plugins/FishyUTP/Core/CommonSocket.cs#L82
+            var pipeline = sendType == SendType.Reliable ? ReliablePipeline : UnreliablePipeline;
+            var buffer = new NativeArray<byte>(data.Count, Allocator.Persistent);
+            NativeArray<byte>.Copy(data.Array, data.Offset, buffer, 0, data.Count);
+
+            var writeStatus = Driver.BeginSend(pipeline, connection, out var writer);
+            if (writeStatus != (int)StatusCode.Success)
+            {
+                return;
+            }
+
+            writer.WriteBytes(buffer);
+            Driver.EndSend(writer);
+
+            buffer.Dispose();
         }
 
         protected async UniTask SignInIfNeeded()
@@ -120,6 +202,20 @@ namespace Exanite.Networking.Transports.UnityRelay
             connections.Remove(connection.InternalId);
 
             ConnectionStopped?.Invoke(this, connection.InternalId);
+        }
+
+        private void OnNetworkReceive(DataStreamReader stream, UnityNetworkConnection connection, NetworkPipeline pipeline)
+        {
+            // From https://github.com/FirstGearGames/FishyUTP/blob/main/FishNet/Plugins/FishyUTP/Core/CommonSocket.cs#L101
+            var buffer = new NativeArray<byte>(stream.Length, Allocator.Temp);
+            stream.ReadBytes(buffer);
+
+            var data = new ArraySegment<byte>(buffer.ToArray());
+            var sendType = pipeline == ReliablePipeline ? SendType.Reliable : SendType.Unreliable;
+
+            buffer.Dispose();
+
+            ReceivedData?.Invoke(this, connection.InternalId, data, sendType);
         }
     }
 }
