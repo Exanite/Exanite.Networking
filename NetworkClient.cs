@@ -62,5 +62,13 @@ namespace Exanite.Networking
         {
             return transport.Status == LocalConnectionStatus.Started;
         }
+
+        protected override void OnConnectionRemoved(NetworkConnection connection)
+        {
+            base.OnConnectionRemoved(connection);
+
+            // Server has disconnected
+            StopConnection();
+        }
     }
 }
