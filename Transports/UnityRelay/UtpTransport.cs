@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UniDi;
@@ -6,6 +7,7 @@ using Unity.Networking.Transport;
 using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using UnityEngine;
+using UnityNetworkConnection = Unity.Networking.Transport.NetworkConnection;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
@@ -17,6 +19,8 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected NetworkDriver Driver;
         protected NetworkPipeline ReliablePipeline;
         protected NetworkPipeline UnreliablePipeline;
+
+        protected Dictionary<int, UnityNetworkConnection> connections;
 
         [Inject] protected IRelayService RelayService;
         [Inject] protected IAuthenticationService AuthenticationService;
@@ -92,6 +96,20 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             ReliablePipeline = Driver.CreatePipeline(typeof(ReliableSequencedPipelineStage));
             UnreliablePipeline = Driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
+        }
+
+        protected virtual void OnConnectionStarted(UnityNetworkConnection connection)
+        {
+            connections.Add(connection.InternalId, connection);
+
+            ConnectionStarted?.Invoke(this, connection.InternalId);
+        }
+
+        protected virtual void OnConnectionStopped(UnityNetworkConnection connection)
+        {
+            connections.Remove(connection.InternalId);
+
+            ConnectionStopped?.Invoke(this, connection.InternalId);
         }
     }
 }

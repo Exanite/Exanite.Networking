@@ -1,14 +1,11 @@
 using Cysharp.Threading.Tasks;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
-using UnityNetworkConnection = Unity.Networking.Transport.NetworkConnection;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
     public class UtpTransportClient : UtpTransport, ITransportClient
     {
-        private UnityNetworkConnection connection;
-
         public override async UniTask StartConnection()
         {
             Status = LocalConnectionStatus.Starting;
@@ -24,7 +21,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             await CreateAndBindNetworkDriver(networkSettings);
             CreateNetworkPipelines();
 
-            connection = Driver.Connect(relayData.Endpoint);
+            OnConnectionStarted(Driver.Connect(relayData.Endpoint));
 
             Status = LocalConnectionStatus.Started;
         }
