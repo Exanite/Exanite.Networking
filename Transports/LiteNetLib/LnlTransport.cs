@@ -60,11 +60,11 @@ namespace Exanite.Networking.Transports.LiteNetLib
             StopConnection(true);
         }
 
-        protected void StopConnection(bool pollEvents)
+        protected void StopConnection(bool handleEvents)
         {
             netManager.DisconnectAll();
 
-            if (pollEvents)
+            if (handleEvents)
             {
                 netManager.PollEvents();
             }

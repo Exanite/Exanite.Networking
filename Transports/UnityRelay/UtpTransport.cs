@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Utilities;
 using Sirenix.OdinInspector;
 using UniDi;
 using Unity.Collections;
@@ -25,6 +26,8 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected Dictionary<int, UnityNetworkConnection> connections;
         protected List<int> connectionIdsToRemove;
 
+        protected Queue<ConnectionStatusEventArgs> eventQueue;
+
         [Inject] protected IRelayService RelayService;
         [Inject] protected IAuthenticationService AuthenticationService;
 
@@ -40,6 +43,8 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             connections = new Dictionary<int, UnityNetworkConnection>();
             connectionIdsToRemove = new List<int>();
+
+            eventQueue = new Queue<ConnectionStatusEventArgs>();
         }
 
         private void OnDestroy()
@@ -87,6 +92,8 @@ namespace Exanite.Networking.Transports.UnityRelay
                     }
                 }
             }
+
+            PushEvents();
         }
 
         private void RemoveDisconnectedConnections()
@@ -114,24 +121,26 @@ namespace Exanite.Networking.Transports.UnityRelay
             StopConnection(true);
         }
 
-        protected void StopConnection(bool pollEvents)
+        protected void StopConnection(bool handleEvents)
         {
             if (Status == LocalConnectionStatus.Stopped)
             {
                 return;
             }
 
-            if (pollEvents)
+            foreach (var connection in connections.Values)
             {
-                foreach (var connection in connections.Values)
-                {
-                    connection.Disconnect(Driver);
-                    connectionIdsToRemove.Add(connection.InternalId);
-                }
+                connection.Disconnect(Driver);
+                connectionIdsToRemove.Add(connection.InternalId);
+            }
 
-                RemoveDisconnectedConnections();
+            RemoveDisconnectedConnections();
 
-                Driver.ScheduleUpdate().Complete();
+            Driver.ScheduleUpdate().Complete();
+
+            if (handleEvents)
+            {
+                PushEvents();
             }
 
             Driver.Dispose();
@@ -207,18 +216,43 @@ namespace Exanite.Networking.Transports.UnityRelay
             UnreliablePipeline = Driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
         }
 
+        protected void PushEvents()
+        {
+            while (eventQueue.Count > 0)
+            {
+                var e = eventQueue.Dequeue();
+
+                switch (e.Status)
+                {
+                    case RemoteConnectionStatus.Started:
+                    {
+                        ConnectionStarted?.Invoke(this, e.ConnectionId);
+
+                        break;
+                    }
+                    case RemoteConnectionStatus.Stopped:
+                    {
+                        ConnectionStopped?.Invoke(this, e.ConnectionId);
+
+                        break;
+                    }
+                    default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
+                }
+            }
+        }
+
         protected virtual void OnConnectionStarted(UnityNetworkConnection connection)
         {
             connections.Add(connection.InternalId, connection);
 
-            ConnectionStarted?.Invoke(this, connection.InternalId);
+            eventQueue.Enqueue(new ConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
         }
 
         protected virtual void OnConnectionStopped(int connectionId)
         {
             if (connections.Remove(connectionId))
             {
-                ConnectionStopped?.Invoke(this, connectionId);
+                eventQueue.Enqueue(new ConnectionStatusEventArgs(connectionId, RemoteConnectionStatus.Stopped));
             }
         }
 
@@ -234,6 +268,18 @@ namespace Exanite.Networking.Transports.UnityRelay
             buffer.Dispose();
 
             ReceivedData?.Invoke(this, connection.InternalId, data, sendType);
+        }
+
+        protected struct ConnectionStatusEventArgs
+        {
+            public ConnectionStatusEventArgs(int connectionId, RemoteConnectionStatus status)
+            {
+                ConnectionId = connectionId;
+                Status = status;
+            }
+
+            public int ConnectionId { get; }
+            public RemoteConnectionStatus Status { get; }
         }
     }
 }
