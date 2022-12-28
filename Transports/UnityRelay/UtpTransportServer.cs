@@ -2,7 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
-using UnityEngine;
+using Unity.Services.Relay.Models;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
@@ -10,27 +10,30 @@ namespace Exanite.Networking.Transports.UnityRelay
     {
         public override async UniTask StartConnection()
         {
-            var allocation = await RelayService.CreateAllocationAsync(2);
+            await SignInIfNeeded();
 
+            var allocation = await RelayService.CreateAllocationAsync(2);
             var relayData = UtpUtility.CreateHostRelayData(allocation);
 
             var networkSettings = new NetworkSettings();
             networkSettings.WithRelayParameters(ref relayData);
 
-            Driver = NetworkDriver.Create(networkSettings);
-            if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
-            {
-                throw new Exception("Failed to bind to local address");
-            }
-
-            await UniTask.WaitWhile(() => Driver.Bound);
+            Driver = await CreateAndBindNetworkDriver(networkSettings);
 
             if (Driver.Listen() != 0)
             {
                 throw new Exception("Failed to start listening to connections");
             }
 
-            Debug.Log("Yee connected!");
+            await UpdateJoinCode(allocation);
+
+            Status = LocalConnectionStatus.Started;
+        }
+
+        private async UniTask UpdateJoinCode(Allocation allocation)
+        {
+            var joinCode = await RelayService.GetJoinCodeAsync(allocation.AllocationId);
+            Settings.JoinCode = joinCode;
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
 {
     public class LnlTransportSettings : MonoBehaviour
     {
-        [SerializeField] protected string connectionKey = Constants.DefaultConnectionKey;
+        [SerializeField] private string connectionKey = Constants.DefaultConnectionKey;
         [SerializeField] private string remoteAddress = Constants.DefaultRemoteAddress;
         [SerializeField] private ushort port = Constants.DefaultPort;
 
