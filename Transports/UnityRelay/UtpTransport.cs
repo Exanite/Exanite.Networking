@@ -116,9 +116,17 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void StopConnection(bool pollEvents)
         {
-            // Todo poll events implementation
-
             Driver.Dispose();
+
+            if (pollEvents)
+            {
+                foreach (var id in connections.Keys)
+                {
+                    connectionIdsToRemove.Add(id);
+                }
+
+                RemoveDisconnectedConnections();
+            }
 
             Status = LocalConnectionStatus.Stopped;
         }
