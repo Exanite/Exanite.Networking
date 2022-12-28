@@ -207,9 +207,10 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected virtual void OnConnectionStopped(int connectionId)
         {
-            connections.Remove(connectionId);
-
-            ConnectionStopped?.Invoke(this, connectionId);
+            if (connections.Remove(connectionId))
+            {
+                ConnectionStopped?.Invoke(this, connectionId);
+            }
         }
 
         private void OnNetworkReceive(DataStreamReader stream, UnityNetworkConnection connection, NetworkPipeline pipeline)

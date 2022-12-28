@@ -112,9 +112,10 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
-            connections.Remove(peer.Id);
-
-            ConnectionStopped?.Invoke(this, peer.Id);
+            if (connections.Remove(peer.Id))
+            {
+                ConnectionStopped?.Invoke(this, peer.Id);
+            }
         }
 
         protected abstract void OnConnectionRequest(ConnectionRequest request);
