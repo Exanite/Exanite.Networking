@@ -29,6 +29,11 @@ namespace Exanite.Networking.Transports.UnityRelay
         public event TransportConnectionStartedEvent ConnectionStarted;
         public event TransportConnectionStartedEvent ConnectionStopped;
 
+        private void OnDestroy()
+        {
+            Driver.Dispose();
+        }
+
         public void Tick()
         {
             if (Status == LocalConnectionStatus.Started)
@@ -41,10 +46,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public void StopConnection()
         {
-            if (Driver.IsCreated)
-            {
-                Driver.Dispose();
-            }
+            throw new NotImplementedException();
         }
 
         public RemoteConnectionStatus GetConnectionStatus(int connectionId)
