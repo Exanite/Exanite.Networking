@@ -49,7 +49,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public void Tick()
         {
-            // Based off of https://github.com/FirstGearGames/FishyUTP/blob/eadc7bcde37db9670192c02f72a37294861e0288/FishNet/Plugins/FishyUTP/Core/UtpServer.cs#L193
+            // Based off of Unity's Simple Relay Sample (using UTP) package
             if (Status != LocalConnectionStatus.Started)
             {
                 return;
@@ -143,7 +143,7 @@ namespace Exanite.Networking.Transports.UnityRelay
                 return;
             }
 
-            // From https://github.com/FirstGearGames/FishyUTP/blob/main/FishNet/Plugins/FishyUTP/Core/CommonSocket.cs#L82
+            // Based off of Unity's Simple Relay Sample (using UTP) package
             var pipeline = sendType == SendType.Reliable ? ReliablePipeline : UnreliablePipeline;
             var buffer = new NativeArray<byte>(data.Count, Allocator.Persistent);
             NativeArray<byte>.Copy(data.Array, data.Offset, buffer, 0, data.Count);
@@ -206,7 +206,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private void OnNetworkReceive(DataStreamReader stream, UnityNetworkConnection connection, NetworkPipeline pipeline)
         {
-            // From https://github.com/FirstGearGames/FishyUTP/blob/main/FishNet/Plugins/FishyUTP/Core/CommonSocket.cs#L101
+            // Based off of Unity's Simple Relay Sample (using UTP) package
             var buffer = new NativeArray<byte>(stream.Length, Allocator.Temp);
             stream.ReadBytes(buffer);
 
