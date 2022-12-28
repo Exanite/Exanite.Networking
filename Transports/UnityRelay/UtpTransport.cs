@@ -23,7 +23,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected NetworkPipeline UnreliablePipeline;
 
         protected Dictionary<int, UnityNetworkConnection> connections;
-        protected List<UnityNetworkConnection> connectionsToRemoveCache;
+        protected List<int> connectionIdsToRemove;
 
         [Inject] protected IRelayService RelayService;
         [Inject] protected IAuthenticationService AuthenticationService;
@@ -39,7 +39,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         private void Awake()
         {
             connections = new Dictionary<int, UnityNetworkConnection>();
-            connectionsToRemoveCache = new List<UnityNetworkConnection>();
+            connectionIdsToRemove = new List<int>();
         }
 
         private void OnDestroy()
@@ -65,7 +65,7 @@ namespace Exanite.Networking.Transports.UnityRelay
                 OnConnectionStarted(incomingConnection);
             }
 
-            foreach (var connection in connections.Values)
+            foreach (var (_, connection) in connections)
             {
                 NetworkEvent.Type networkEvent;
                 while ((networkEvent = Driver.PopEventForConnection(connection, out var stream, out var pipeline)) != NetworkEvent.Type.Empty)
@@ -80,7 +80,7 @@ namespace Exanite.Networking.Transports.UnityRelay
                         }
                         case NetworkEvent.Type.Disconnect:
                         {
-                            DisconnectConnection(connection.InternalId);
+                            connectionIdsToRemove.Add(connection.InternalId);
 
                             break;
                         }
@@ -91,22 +91,20 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private void RemoveDisconnectedConnections()
         {
-            connectionsToRemoveCache.Clear();
-
             foreach (var connection in connections.Values)
             {
                 if (!connection.IsCreated)
                 {
-                    connectionsToRemoveCache.Add(connection);
+                    connectionIdsToRemove.Add(connection.InternalId);
                 }
             }
 
-            foreach (var connection in connectionsToRemoveCache)
+            foreach (var connectionId in connectionIdsToRemove)
             {
-                OnConnectionStopped(connection);
+                OnConnectionStopped(connectionId);
             }
 
-            connectionsToRemoveCache.Clear();
+            connectionIdsToRemove.Clear();
         }
 
         public abstract UniTask StartConnection();
@@ -118,6 +116,8 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void StopConnection(bool pollEvents)
         {
+            // Todo poll events implementation
+
             Driver.Dispose();
 
             Status = LocalConnectionStatus.Stopped;
@@ -197,11 +197,11 @@ namespace Exanite.Networking.Transports.UnityRelay
             ConnectionStarted?.Invoke(this, connection.InternalId);
         }
 
-        protected virtual void OnConnectionStopped(UnityNetworkConnection connection)
+        protected virtual void OnConnectionStopped(int connectionId)
         {
-            connections.Remove(connection.InternalId);
+            connections.Remove(connectionId);
 
-            ConnectionStopped?.Invoke(this, connection.InternalId);
+            ConnectionStopped?.Invoke(this, connectionId);
         }
 
         private void OnNetworkReceive(DataStreamReader stream, UnityNetworkConnection connection, NetworkPipeline pipeline)
