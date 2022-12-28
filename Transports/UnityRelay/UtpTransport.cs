@@ -116,17 +116,25 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void StopConnection(bool pollEvents)
         {
-            Driver.Dispose();
+            if (Status == LocalConnectionStatus.Stopped)
+            {
+                return;
+            }
 
             if (pollEvents)
             {
-                foreach (var id in connections.Keys)
+                foreach (var connection in connections.Values)
                 {
-                    connectionIdsToRemove.Add(id);
+                    connection.Disconnect(Driver);
+                    connectionIdsToRemove.Add(connection.InternalId);
                 }
 
                 RemoveDisconnectedConnections();
+
+                Driver.ScheduleUpdate().Complete();
             }
+
+            Driver.Dispose();
 
             Status = LocalConnectionStatus.Stopped;
         }
@@ -141,6 +149,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             if (connections.TryGetValue(connectionId, out var connection))
             {
                 connection.Disconnect(Driver);
+                connectionIdsToRemove.Add(connectionId);
             }
         }
 
