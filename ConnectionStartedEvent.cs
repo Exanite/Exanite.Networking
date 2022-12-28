@@ -1,4 +1,4 @@
 namespace Exanite.Networking
 {
-    public delegate void ConnectionStartedEvent(Network network, NetworkConnection connection);
+    public delegate void ConnectionStartedEvent(INetwork network, NetworkConnection connection);
 }
