@@ -35,7 +35,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private void OnDestroy()
         {
-            Driver.Dispose();
+            StopConnection(false);
         }
 
         public void Tick()
@@ -50,17 +50,27 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public void StopConnection()
         {
-            throw new NotImplementedException();
+            StopConnection(true);
+        }
+
+        protected void StopConnection(bool pollEvents)
+        {
+            Driver.Dispose();
+
+            Status = LocalConnectionStatus.Stopped;
         }
 
         public RemoteConnectionStatus GetConnectionStatus(int connectionId)
         {
-            throw new NotImplementedException();
+            return connections.ContainsKey(connectionId) ? RemoteConnectionStatus.Started : RemoteConnectionStatus.Stopped;
         }
 
         public void DisconnectConnection(int connectionId)
         {
-            throw new NotImplementedException();
+            if (connections.TryGetValue(connectionId, out var connection))
+            {
+                connection.Disconnect(Driver);
+            }
         }
 
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType)
