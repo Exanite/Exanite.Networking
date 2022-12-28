@@ -10,6 +10,8 @@ namespace Exanite.Networking.Transports.UnityRelay
     {
         public override async UniTask StartConnection()
         {
+            Status = LocalConnectionStatus.Starting;
+
             await SignInIfNeeded();
 
             var allocation = await RelayService.CreateAllocationAsync(2);
@@ -18,7 +20,8 @@ namespace Exanite.Networking.Transports.UnityRelay
             var networkSettings = new NetworkSettings();
             networkSettings.WithRelayParameters(ref relayData);
 
-            Driver = await CreateAndBindNetworkDriver(networkSettings);
+            await CreateAndBindNetworkDriver(networkSettings);
+            CreateNetworkPipelines();
 
             if (Driver.Listen() != 0)
             {

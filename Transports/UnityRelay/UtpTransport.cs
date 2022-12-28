@@ -15,6 +15,8 @@ namespace Exanite.Networking.Transports.UnityRelay
         [Required] [SerializeField] private UtpTransportSettings settings;
 
         protected NetworkDriver Driver;
+        protected NetworkPipeline ReliablePipeline;
+        protected NetworkPipeline UnreliablePipeline;
 
         [Inject] protected IRelayService RelayService;
         [Inject] protected IAuthenticationService AuthenticationService;
@@ -62,28 +64,32 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected async UniTask SignInIfNeeded()
         {
-            if (Settings.AutoSignInToUnityServices)
+            if (Settings.AutoSignInToUnityServices && !AuthenticationService.IsSignedIn)
             {
                 await AuthenticationService.SignInAnonymouslyAsync();
             }
         }
 
-        protected async UniTask<NetworkDriver> CreateAndBindNetworkDriver(NetworkSettings networkSettings)
+        protected async UniTask CreateAndBindNetworkDriver(NetworkSettings networkSettings)
         {
-            var driver = NetworkDriver.Create(networkSettings);
-            if (driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
+            Driver = NetworkDriver.Create(networkSettings);
+            if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
             {
                 throw new Exception("Failed to bind to local address");
             }
 
-            while (!driver.Bound)
+            while (!Driver.Bound)
             {
                 Driver.ScheduleUpdate().Complete();
 
                 await UniTask.Yield();
             }
+        }
 
-            return driver;
+        protected void CreateNetworkPipelines()
+        {
+            ReliablePipeline = Driver.CreatePipeline(typeof(ReliableSequencedPipelineStage));
+            UnreliablePipeline = Driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
         }
     }
 }
