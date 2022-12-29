@@ -1,4 +1,4 @@
-namespace Exanite.Networking
+namespace Exanite.Networking.Transports
 {
     public struct ConnectionStatusEventArgs
     {
