@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LiteNetLib;
-using Sirenix.OdinInspector;
+using UniDi;
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
     public abstract class LnlTransport : MonoBehaviour, ITransport
     {
-        [Header("Dependencies")]
-        [Required] [SerializeField] private LnlTransportSettings settings;
-
         protected EventBasedNetListener listener;
         protected NetManager netManager;
 
         protected Dictionary<int, NetPeer> connections;
+
+        [Inject] private LnlTransportSettings settings;
 
         public LnlTransportSettings Settings => settings;
 

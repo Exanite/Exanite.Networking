@@ -16,9 +16,6 @@ namespace Exanite.Networking.Transports.UnityRelay
 {
     public abstract class UtpTransport : MonoBehaviour, ITransport
     {
-        [Header("Dependencies")]
-        [Required] [SerializeField] private UtpTransportSettings settings;
-
         protected NetworkDriver Driver;
         protected NetworkPipeline ReliablePipeline;
         protected NetworkPipeline UnreliablePipeline;
@@ -28,6 +25,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected Queue<ConnectionStatusEventArgs> eventQueue;
 
+        [Inject] private UtpTransportSettings settings;
         [Inject] protected IRelayService RelayService;
         [Inject] protected IAuthenticationService AuthenticationService;
 
