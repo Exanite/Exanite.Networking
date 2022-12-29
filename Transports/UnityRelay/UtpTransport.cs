@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Core.Utilities;
-using Sirenix.OdinInspector;
 using UniDi;
 using Unity.Collections;
 using Unity.Networking.Transport;
