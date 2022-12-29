@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
@@ -37,9 +38,11 @@ namespace Exanite.Networking
 
                 await transport.StartConnection();
             }
-            catch
+            catch (Exception e)
             {
                 StopConnection();
+
+                throw new Exception($"Exception thrown while starting {GetType().Name}", e);
             }
 
             Status = LocalConnectionStatus.Started;
