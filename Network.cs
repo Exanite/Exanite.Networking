@@ -150,9 +150,9 @@ namespace Exanite.Networking
 
         protected void UnregisterTransportEvents(ITransport transport)
         {
-            transport.ReceivedData -= Transport_OnReceivedData;
-            transport.ConnectionStopped += Transport_OnConnectionStopped;
             transport.ConnectionStarted += Transport_OnConnectionStarted;
+            transport.ConnectionStopped += Transport_OnConnectionStopped;
+            transport.ReceivedData -= Transport_OnReceivedData;
         }
 
         protected virtual void OnTickTransports() {}
