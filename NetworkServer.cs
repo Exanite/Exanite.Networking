@@ -32,7 +32,7 @@ namespace Exanite.Networking
             {
                 StopConnection();
 
-                throw new Exception($"Exception thrown while starting {GetType().Name}", e);
+                throw new NetworkException($"Exception thrown while starting {GetType().Name}", e);
             }
 
             Status = LocalConnectionStatus.Started;

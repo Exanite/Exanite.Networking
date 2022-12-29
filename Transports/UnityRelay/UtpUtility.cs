@@ -18,7 +18,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             var endpoint = GetEndpointForConnectionType(allocation.ServerEndpoints, connectionType);
             if (endpoint == null)
             {
-                throw new Exception($"endpoint for connectionType {connectionType} not found");
+                throw new NetworkException($"endpoint for connectionType {connectionType} not found");
             }
 
             // Prepare the server endpoint using the Relay server IP and port
@@ -42,7 +42,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             var endpoint = GetEndpointForConnectionType(allocation.ServerEndpoints, connectionType);
             if (endpoint == null)
             {
-                throw new Exception($"endpoint for connectionType {connectionType} not found");
+                throw new NetworkException($"endpoint for connectionType {connectionType} not found");
             }
 
             // Prepare the server endpoint using the Relay server IP and port

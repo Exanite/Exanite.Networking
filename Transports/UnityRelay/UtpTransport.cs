@@ -197,7 +197,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             Driver = NetworkDriver.Create(networkSettings);
             if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
             {
-                throw new Exception("Failed to bind to local address");
+                throw new NetworkException("Failed to bind to local address");
             }
 
             while (!Driver.Bound)

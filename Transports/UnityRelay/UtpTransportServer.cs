@@ -25,7 +25,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             if (Driver.Listen() != 0)
             {
-                throw new Exception("Failed to start listening to connections");
+                throw new NetworkException("Failed to start listening to connections");
             }
 
             await UpdateJoinCode(allocation);

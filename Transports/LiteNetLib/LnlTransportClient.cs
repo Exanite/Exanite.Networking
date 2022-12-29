@@ -17,7 +17,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
             if (Status != LocalConnectionStatus.Started)
             {
-                throw new Exception("Failed to connect.");
+                throw new NetworkException("Failed to connect.");
             }
         }
 
