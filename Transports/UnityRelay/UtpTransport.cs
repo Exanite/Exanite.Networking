@@ -216,10 +216,8 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void PushEvents()
         {
-            while (eventQueue.Count > 0)
+            while (eventQueue.TryDequeue(out var e))
             {
-                var e = eventQueue.Dequeue();
-
                 switch (e.Status)
                 {
                     case RemoteConnectionStatus.Started:
