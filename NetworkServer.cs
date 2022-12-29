@@ -13,16 +13,6 @@ namespace Exanite.Networking
 
         public IReadOnlyList<ITransportServer> Transports => transports;
 
-        public override void Tick()
-        {
-            base.Tick();
-
-            foreach (var transport in transports)
-            {
-                transport.Tick();
-            }
-        }
-
         public override async UniTask StartConnection()
         {
             ValidateIsStopped();
@@ -75,6 +65,16 @@ namespace Exanite.Networking
             }
 
             return true;
+        }
+
+        protected override void OnTickTransports()
+        {
+            base.OnTickTransports();
+
+            foreach (var transport in transports)
+            {
+                transport.Tick();
+            }
         }
     }
 }

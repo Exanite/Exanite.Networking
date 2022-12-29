@@ -12,13 +12,20 @@ namespace Exanite.Networking
         [Required] [OdinSerialize] private ITransportClient transport;
 
         public ITransportClient Transport => transport;
-        public NetworkConnection ServerConnection => connectionTracker.Connections.Values.FirstOrDefault();
+        public NetworkConnection ServerConnection => Connections.Values.FirstOrDefault();
 
-        public override void Tick()
+        protected override void Awake()
         {
-            base.Tick();
+            base.Awake();
 
-            transport.Tick();
+            ConnectionStopped += OnConnectionStopped;
+        }
+
+        protected override void OnDestroy()
+        {
+            ConnectionStopped -= OnConnectionStopped;
+
+            base.OnDestroy();
         }
 
         public void SetTransport(ITransportClient transport)
@@ -66,11 +73,16 @@ namespace Exanite.Networking
             return transport.Status == LocalConnectionStatus.Started;
         }
 
-        protected override void OnConnectionRemoved(NetworkConnection connection)
+        protected override void OnTickTransports()
         {
-            base.OnConnectionRemoved(connection);
+            base.OnTickTransports();
 
-            // Server has disconnected
+            transport.Tick();
+        }
+
+        private void OnConnectionStopped(INetwork network, NetworkConnection connection)
+        {
+            // Disconnected from server
             StopConnection();
         }
     }

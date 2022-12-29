@@ -9,13 +9,12 @@ namespace Exanite.Networking
 {
     public abstract class Network : SerializedMonoBehaviour, INetwork
     {
-        protected ConnectionTracker connectionTracker;
-        protected Dictionary<int, IPacketHandler> packetHandlers;
+        private ConnectionTracker connectionTracker;
+        private Dictionary<int, IPacketHandler> packetHandlers;
 
-        protected NetDataReader cachedReader;
-        protected NetDataWriter cachedWriter;
+        private NetDataReader cachedReader;
+        private NetDataWriter cachedWriter;
 
-        private ConnectionFactory connectionFactory;
         private bool hasNotifiedPacketHandlersOfStart;
 
         public LocalConnectionStatus Status { get; protected set; }
@@ -29,34 +28,37 @@ namespace Exanite.Networking
 
         protected virtual void Awake()
         {
-            connectionFactory = new ConnectionFactory();
+            var connectionFactory = new ConnectionFactory();
             connectionTracker = new ConnectionTracker(connectionFactory);
             packetHandlers = new Dictionary<int, IPacketHandler>();
 
             cachedReader = new NetDataReader();
             cachedWriter = new NetDataWriter();
 
-            connectionTracker.ConnectionAdded += OnConnectionAdded;
-            connectionTracker.ConnectionRemoved += OnConnectionRemoved;
+            connectionTracker.ConnectionAdded += OnConnectionStarted;
+            connectionTracker.ConnectionRemoved += OnConnectionClosed;
         }
 
         protected virtual void OnDestroy()
         {
-            connectionTracker.ConnectionAdded -= OnConnectionAdded;
-            connectionTracker.ConnectionRemoved -= OnConnectionRemoved;
+            connectionTracker.ConnectionAdded -= OnConnectionStarted;
+            connectionTracker.ConnectionRemoved -= OnConnectionClosed;
         }
 
         protected virtual void FixedUpdate()
+        {
+            Tick();
+        }
+
+        public void Tick()
         {
             if (Status == LocalConnectionStatus.Started && !AreTransportsAllStarted())
             {
                 StopConnection();
             }
 
-            Tick();
+            OnTickTransports();
         }
-
-        public virtual void Tick() {}
 
         public abstract UniTask StartConnection();
 
@@ -139,27 +141,43 @@ namespace Exanite.Networking
 
         protected abstract bool AreTransportsAllStarted();
 
-        protected virtual void OnConnectionAdded(NetworkConnection connection)
+        protected void RegisterTransportEvents(ITransport transport)
+        {
+            transport.ConnectionStarted += Transport_OnConnectionStarted;
+            transport.ConnectionStopped += Transport_OnConnectionStopped;
+            transport.ReceivedData += Transport_OnReceivedData;
+        }
+
+        protected void UnregisterTransportEvents(ITransport transport)
+        {
+            transport.ReceivedData -= Transport_OnReceivedData;
+            transport.ConnectionStopped += Transport_OnConnectionStopped;
+            transport.ConnectionStarted += Transport_OnConnectionStarted;
+        }
+
+        protected virtual void OnTickTransports() {}
+
+        private void OnConnectionStarted(NetworkConnection connection)
         {
             ConnectionStarted?.Invoke(this, connection);
         }
 
-        protected virtual void OnConnectionRemoved(NetworkConnection connection)
+        private void OnConnectionClosed(NetworkConnection connection)
         {
             ConnectionStopped?.Invoke(this, connection);
         }
 
-        protected virtual void Transport_OnConnectionStarted(ITransport transport, int transportConnectionId)
+        private void Transport_OnConnectionStarted(ITransport transport, int transportConnectionId)
         {
             connectionTracker.AddNetworkConnection(transport, transportConnectionId);
         }
 
-        protected virtual void Transport_OnConnectionStopped(ITransport transport, int transportConnectionId)
+        private void Transport_OnConnectionStopped(ITransport transport, int transportConnectionId)
         {
             connectionTracker.RemoveNetworkConnection(transport, transportConnectionId);
         }
 
-        protected virtual void Transport_OnReceivedData(ITransport transport, int transportConnectionId, ArraySegment<byte> data, SendType sendType)
+        private void Transport_OnReceivedData(ITransport transport, int transportConnectionId, ArraySegment<byte> data, SendType sendType)
         {
             var connection = connectionTracker.GetNetworkConnection(transport, transportConnectionId);
             if (connection == null)
@@ -176,20 +194,6 @@ namespace Exanite.Networking
             }
 
             packetHandler.OnReceive(this, connection, cachedReader, sendType);
-        }
-
-        protected virtual void RegisterTransportEvents(ITransport transport)
-        {
-            transport.ConnectionStarted += Transport_OnConnectionStarted;
-            transport.ConnectionStopped += Transport_OnConnectionStopped;
-            transport.ReceivedData += Transport_OnReceivedData;
-        }
-
-        protected virtual void UnregisterTransportEvents(ITransport transport)
-        {
-            transport.ReceivedData -= Transport_OnReceivedData;
-            transport.ConnectionStopped += Transport_OnConnectionStopped;
-            transport.ConnectionStarted += Transport_OnConnectionStarted;
         }
     }
 }
