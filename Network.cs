@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Utilities;
 using Exanite.Networking.Transports;
 using LiteNetLib.Utils;
 using Sirenix.OdinInspector;
@@ -143,15 +144,13 @@ namespace Exanite.Networking
 
         protected void RegisterTransportEvents(ITransport transport)
         {
-            transport.ConnectionStarted += Transport_OnConnectionStarted;
-            transport.ConnectionStopped += Transport_OnConnectionStopped;
+            transport.ConnectionStatus += Transport_OnConnectionStatus;
             transport.ReceivedData += Transport_OnReceivedData;
         }
 
         protected void UnregisterTransportEvents(ITransport transport)
         {
-            transport.ConnectionStarted += Transport_OnConnectionStarted;
-            transport.ConnectionStopped += Transport_OnConnectionStopped;
+            transport.ConnectionStatus += Transport_OnConnectionStatus;
             transport.ReceivedData -= Transport_OnReceivedData;
         }
 
@@ -167,25 +166,35 @@ namespace Exanite.Networking
             ConnectionStopped?.Invoke(this, connection);
         }
 
-        private void Transport_OnConnectionStarted(ITransport transport, int transportConnectionId)
+        private void Transport_OnConnectionStatus(ITransport transport, ConnectionStatusEventArgs e)
         {
-            connectionTracker.AddNetworkConnection(transport, transportConnectionId);
+            switch (e.Status)
+            {
+                case RemoteConnectionStatus.Started:
+                {
+                    connectionTracker.AddNetworkConnection(transport, e.ConnectionId);
+
+                    break;
+                }
+                case RemoteConnectionStatus.Stopped:
+                {
+                    connectionTracker.RemoveNetworkConnection(transport, e.ConnectionId);
+
+                    break;
+                }
+                default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
+            }
         }
 
-        private void Transport_OnConnectionStopped(ITransport transport, int transportConnectionId)
+        private void Transport_OnReceivedData(ITransport transport, ReceivedDataEventArgs e)
         {
-            connectionTracker.RemoveNetworkConnection(transport, transportConnectionId);
-        }
-
-        private void Transport_OnReceivedData(ITransport transport, int transportConnectionId, ArraySegment<byte> data, SendType sendType)
-        {
-            var connection = connectionTracker.GetNetworkConnection(transport, transportConnectionId);
+            var connection = connectionTracker.GetNetworkConnection(transport, e.ConnectionId);
             if (connection == null)
             {
                 return;
             }
 
-            cachedReader.SetSource(data.Array, data.Offset, data.Offset + data.Count);
+            cachedReader.SetSource(e.Data.Array, e.Data.Offset, e.Data.Offset + e.Data.Count);
 
             var packetHandlerId = cachedReader.GetInt();
             if (!packetHandlers.TryGetValue(packetHandlerId, out var packetHandler))
@@ -193,7 +202,7 @@ namespace Exanite.Networking
                 return;
             }
 
-            packetHandler.OnReceive(this, connection, cachedReader, sendType);
+            packetHandler.OnReceive(this, connection, cachedReader, e.SendType);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Events;
 using LiteNetLib;
 using UniDi;
 using UnityEngine;
@@ -20,9 +21,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event TransportReceivedDataEvent ReceivedData;
-        public event TransportConnectionStartedEvent ConnectionStarted;
-        public event TransportConnectionStartedEvent ConnectionStopped;
+        public event EventHandler<ITransport, ReceivedDataEventArgs> ReceivedData;
+        public event EventHandler<ITransport, ConnectionStatusEventArgs> ConnectionStatus;
 
         protected virtual void Awake()
         {
@@ -99,21 +99,21 @@ namespace Exanite.Networking.Transports.LiteNetLib
         protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
         {
             var data = new ArraySegment<byte>(reader.RawData, reader.Position, reader.AvailableBytes);
-            ReceivedData?.Invoke(this, peer.Id, data, deliveryMethod.ToSendType());
+            ReceivedData?.Invoke(this, new ReceivedDataEventArgs(peer.Id, data, deliveryMethod.ToSendType()));
         }
 
         protected virtual void OnPeerConnected(NetPeer peer)
         {
             connections.Add(peer.Id, peer);
 
-            ConnectionStarted?.Invoke(this, peer.Id);
+            ConnectionStatus?.Invoke(this, new ConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Started));
         }
 
         protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             if (connections.Remove(peer.Id))
             {
-                ConnectionStopped?.Invoke(this, peer.Id);
+                ConnectionStatus?.Invoke(this, new ConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Stopped));
             }
         }
 

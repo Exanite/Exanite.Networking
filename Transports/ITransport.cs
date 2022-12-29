@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Events;
 
 namespace Exanite.Networking.Transports
 {
@@ -8,9 +9,8 @@ namespace Exanite.Networking.Transports
         public LocalConnectionStatus Status { get; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
-        public event TransportReceivedDataEvent ReceivedData;
-        public event TransportConnectionStartedEvent ConnectionStarted;
-        public event TransportConnectionStartedEvent ConnectionStopped;
+        public event EventHandler<ITransport, ReceivedDataEventArgs> ReceivedData;
+        public event EventHandler<ITransport, ConnectionStatusEventArgs> ConnectionStatus;
 
         public void Tick();
 

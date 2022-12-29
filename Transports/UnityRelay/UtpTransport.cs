@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Exanite.Core.Utilities;
+using Exanite.Core.Events;
 using UniDi;
 using Unity.Collections;
 using Unity.Networking.Transport;
@@ -32,9 +32,8 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event TransportReceivedDataEvent ReceivedData;
-        public event TransportConnectionStartedEvent ConnectionStarted;
-        public event TransportConnectionStartedEvent ConnectionStopped;
+        public event EventHandler<ITransport, ReceivedDataEventArgs> ReceivedData;
+        public event EventHandler<ITransport, ConnectionStatusEventArgs> ConnectionStatus;
 
         private void Awake()
         {
@@ -217,22 +216,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             while (eventQueue.TryDequeue(out var e))
             {
-                switch (e.Status)
-                {
-                    case RemoteConnectionStatus.Started:
-                    {
-                        ConnectionStarted?.Invoke(this, e.ConnectionId);
-
-                        break;
-                    }
-                    case RemoteConnectionStatus.Stopped:
-                    {
-                        ConnectionStopped?.Invoke(this, e.ConnectionId);
-
-                        break;
-                    }
-                    default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
-                }
+                ConnectionStatus?.Invoke(this, e);
             }
         }
 
@@ -262,19 +246,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             buffer.Dispose();
 
-            ReceivedData?.Invoke(this, connection.InternalId, data, sendType);
-        }
-
-        protected struct ConnectionStatusEventArgs
-        {
-            public ConnectionStatusEventArgs(int connectionId, RemoteConnectionStatus status)
-            {
-                ConnectionId = connectionId;
-                Status = status;
-            }
-
-            public int ConnectionId { get; }
-            public RemoteConnectionStatus Status { get; }
+            ReceivedData?.Invoke(this, new ReceivedDataEventArgs(connection.InternalId, data, sendType));
         }
     }
 }
