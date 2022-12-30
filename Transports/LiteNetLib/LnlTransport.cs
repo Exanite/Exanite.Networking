@@ -21,8 +21,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event EventHandler<ITransport, ReceivedDataEventArgs> ReceivedData;
-        public event EventHandler<ITransport, ConnectionStatusEventArgs> ConnectionStatus;
+        public event EventHandler<ITransport, TransportReceivedDataEventArgs> ReceivedData;
+        public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
         protected virtual void Awake()
         {
@@ -99,21 +99,21 @@ namespace Exanite.Networking.Transports.LiteNetLib
         protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
         {
             var data = new ArraySegment<byte>(reader.RawData, reader.Position, reader.AvailableBytes);
-            ReceivedData?.Invoke(this, new ReceivedDataEventArgs(peer.Id, data, deliveryMethod.ToSendType()));
+            ReceivedData?.Invoke(this, new TransportReceivedDataEventArgs(peer.Id, data, deliveryMethod.ToSendType()));
         }
 
         protected virtual void OnPeerConnected(NetPeer peer)
         {
             connections.Add(peer.Id, peer);
 
-            ConnectionStatus?.Invoke(this, new ConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Started));
+            ConnectionStatus?.Invoke(this, new TransportConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Started));
         }
 
         protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             if (connections.Remove(peer.Id))
             {
-                ConnectionStatus?.Invoke(this, new ConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Stopped));
+                ConnectionStatus?.Invoke(this, new TransportConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Stopped));
             }
         }
 

@@ -1,8 +1,8 @@
 namespace Exanite.Networking.Transports
 {
-    public struct ConnectionStatusEventArgs
+    public readonly struct TransportConnectionStatusEventArgs
     {
-        public ConnectionStatusEventArgs(int connectionId, RemoteConnectionStatus status)
+        public TransportConnectionStatusEventArgs(int connectionId, RemoteConnectionStatus status)
         {
             ConnectionId = connectionId;
             Status = status;

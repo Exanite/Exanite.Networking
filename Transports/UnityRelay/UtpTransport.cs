@@ -22,7 +22,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected Dictionary<int, UnityNetworkConnection> connections;
         protected List<int> connectionIdsToRemove;
 
-        protected Queue<ConnectionStatusEventArgs> eventQueue;
+        protected Queue<TransportConnectionStatusEventArgs> eventQueue;
 
         [Inject] private UtpTransportSettings settings;
         [Inject] protected IRelayService RelayService;
@@ -32,15 +32,15 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event EventHandler<ITransport, ReceivedDataEventArgs> ReceivedData;
-        public event EventHandler<ITransport, ConnectionStatusEventArgs> ConnectionStatus;
+        public event EventHandler<ITransport, TransportReceivedDataEventArgs> ReceivedData;
+        public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
         private void Awake()
         {
             connections = new Dictionary<int, UnityNetworkConnection>();
             connectionIdsToRemove = new List<int>();
 
-            eventQueue = new Queue<ConnectionStatusEventArgs>();
+            eventQueue = new Queue<TransportConnectionStatusEventArgs>();
         }
 
         private void OnDestroy()
@@ -224,14 +224,14 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             connections.Add(connection.InternalId, connection);
 
-            eventQueue.Enqueue(new ConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
+            eventQueue.Enqueue(new TransportConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
         }
 
         protected virtual void OnConnectionStopped(int connectionId)
         {
             if (connections.Remove(connectionId))
             {
-                eventQueue.Enqueue(new ConnectionStatusEventArgs(connectionId, RemoteConnectionStatus.Stopped));
+                eventQueue.Enqueue(new TransportConnectionStatusEventArgs(connectionId, RemoteConnectionStatus.Stopped));
             }
         }
 
@@ -246,7 +246,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             buffer.Dispose();
 
-            ReceivedData?.Invoke(this, new ReceivedDataEventArgs(connection.InternalId, data, sendType));
+            ReceivedData?.Invoke(this, new TransportReceivedDataEventArgs(connection.InternalId, data, sendType));
         }
     }
 }

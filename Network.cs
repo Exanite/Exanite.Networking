@@ -17,6 +17,7 @@ namespace Exanite.Networking
         private NetDataWriter cachedWriter;
 
         private bool hasNotifiedPacketHandlersOfStart;
+        private Queue<ConnectionStatusEventArgs> eventQueue;
 
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
@@ -24,6 +25,7 @@ namespace Exanite.Networking
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
         public IReadOnlyDictionary<int, NetworkConnection> Connections => connectionTracker.Connections;
 
+        public event ConnectionStatusEvent ConnectionStatus;
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
 
@@ -36,14 +38,16 @@ namespace Exanite.Networking
             cachedReader = new NetDataReader();
             cachedWriter = new NetDataWriter();
 
+            eventQueue = new Queue<ConnectionStatusEventArgs>();
+
             connectionTracker.ConnectionAdded += OnConnectionStarted;
-            connectionTracker.ConnectionRemoved += OnConnectionClosed;
+            connectionTracker.ConnectionRemoved += OnConnectionStopped;
         }
 
         protected virtual void OnDestroy()
         {
             connectionTracker.ConnectionAdded -= OnConnectionStarted;
-            connectionTracker.ConnectionRemoved -= OnConnectionClosed;
+            connectionTracker.ConnectionRemoved -= OnConnectionStopped;
         }
 
         protected virtual void FixedUpdate()
@@ -59,6 +63,8 @@ namespace Exanite.Networking
             }
 
             OnTickTransports();
+
+            PushEvents();
         }
 
         public abstract UniTask StartConnection();
@@ -85,12 +91,29 @@ namespace Exanite.Networking
             connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
         }
 
-        protected void WritePacketHandlerDataToCachedWriter(IPacketHandler handler, NetDataWriter writer)
+        protected void PushEvents()
         {
-            cachedWriter.Reset();
+            while (eventQueue.TryDequeue(out var e))
+            {
+                switch (e.Status)
+                {
+                    case RemoteConnectionStatus.Started:
+                    {
+                        ConnectionStarted?.Invoke(this, e.Connection);
 
-            cachedWriter.Put(handler.HandlerId);
-            cachedWriter.Put(writer.Data, 0, writer.Length);
+                        break;
+                    }
+                    case RemoteConnectionStatus.Stopped:
+                    {
+                        ConnectionStopped?.Invoke(this, e.Connection);
+
+                        break;
+                    }
+                    default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
+                }
+
+                ConnectionStatus?.Invoke(this, e.Connection, e.Status);
+            }
         }
 
         protected void NotifyPacketHandlers_NetworkStarted()
@@ -156,17 +179,25 @@ namespace Exanite.Networking
 
         protected virtual void OnTickTransports() {}
 
+        private void WritePacketHandlerDataToCachedWriter(IPacketHandler handler, NetDataWriter writer)
+        {
+            cachedWriter.Reset();
+
+            cachedWriter.Put(handler.HandlerId);
+            cachedWriter.Put(writer.Data, 0, writer.Length);
+        }
+
         private void OnConnectionStarted(NetworkConnection connection)
         {
-            ConnectionStarted?.Invoke(this, connection);
+            eventQueue.Enqueue(new ConnectionStatusEventArgs(connection, RemoteConnectionStatus.Started));
         }
 
-        private void OnConnectionClosed(NetworkConnection connection)
+        private void OnConnectionStopped(NetworkConnection connection)
         {
-            ConnectionStopped?.Invoke(this, connection);
+            eventQueue.Enqueue(new ConnectionStatusEventArgs(connection, RemoteConnectionStatus.Stopped));
         }
 
-        private void Transport_OnConnectionStatus(ITransport transport, ConnectionStatusEventArgs e)
+        private void Transport_OnConnectionStatus(ITransport transport, TransportConnectionStatusEventArgs e)
         {
             switch (e.Status)
             {
@@ -186,7 +217,7 @@ namespace Exanite.Networking
             }
         }
 
-        private void Transport_OnReceivedData(ITransport transport, ReceivedDataEventArgs e)
+        private void Transport_OnReceivedData(ITransport transport, TransportReceivedDataEventArgs e)
         {
             var connection = connectionTracker.GetNetworkConnection(transport, e.ConnectionId);
             if (connection == null)
