@@ -63,8 +63,6 @@ namespace Exanite.Networking
             }
 
             OnTickTransports();
-
-            PushEvents();
         }
 
         public abstract UniTask StartConnection();
@@ -93,56 +91,49 @@ namespace Exanite.Networking
 
         protected void PushEvents()
         {
-            while (eventQueue.TryDequeue(out var e))
+            if (!hasNotifiedPacketHandlersOfStart && Status == LocalConnectionStatus.Started)
             {
-                switch (e.Status)
+                hasNotifiedPacketHandlersOfStart = true;
+
+                foreach (var packetHandler in packetHandlers.Values)
                 {
-                    case RemoteConnectionStatus.Started:
-                    {
-                        ConnectionStarted?.Invoke(this, e.Connection);
-
-                        break;
-                    }
-                    case RemoteConnectionStatus.Stopped:
-                    {
-                        ConnectionStopped?.Invoke(this, e.Connection);
-
-                        break;
-                    }
-                    default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
+                    packetHandler.OnNetworkStarted(this);
                 }
-
-                ConnectionStatus?.Invoke(this, e.Connection, e.Status);
             }
-        }
 
-        protected void NotifyPacketHandlers_NetworkStarted()
-        {
             if (hasNotifiedPacketHandlersOfStart)
             {
-                return;
+                while (eventQueue.TryDequeue(out var e))
+                {
+                    switch (e.Status)
+                    {
+                        case RemoteConnectionStatus.Started:
+                        {
+                            ConnectionStarted?.Invoke(this, e.Connection);
+
+                            break;
+                        }
+                        case RemoteConnectionStatus.Stopped:
+                        {
+                            ConnectionStopped?.Invoke(this, e.Connection);
+
+                            break;
+                        }
+                        default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
+                    }
+
+                    ConnectionStatus?.Invoke(this, e.Connection, e.Status);
+                }
             }
 
-            hasNotifiedPacketHandlersOfStart = true;
-
-            foreach (var (_, packetHandler) in packetHandlers)
+            if (hasNotifiedPacketHandlersOfStart && Status == LocalConnectionStatus.Stopped)
             {
-                packetHandler.OnNetworkStarted(this);
-            }
-        }
+                hasNotifiedPacketHandlersOfStart = false;
 
-        protected void NotifyPacketHandlers_NetworkStopped()
-        {
-            if (!hasNotifiedPacketHandlersOfStart)
-            {
-                return;
-            }
-
-            hasNotifiedPacketHandlersOfStart = false;
-
-            foreach (var (_, packetHandler) in packetHandlers)
-            {
-                packetHandler.OnNetworkStopped(this);
+                foreach (var packetHandler in packetHandlers.Values)
+                {
+                    packetHandler.OnNetworkStopped(this);
+                }
             }
         }
 
