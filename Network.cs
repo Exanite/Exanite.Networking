@@ -63,6 +63,7 @@ namespace Exanite.Networking
             }
 
             OnTickTransports();
+            PushEvents();
         }
 
         public abstract UniTask StartConnection();
