@@ -6,5 +6,7 @@ namespace Exanite.Networking
     {
         public ITransportClient Transport { get; }
         public NetworkConnection ServerConnection { get; }
+
+        public void SetTransport(ITransportClient transport);
     }
 }
