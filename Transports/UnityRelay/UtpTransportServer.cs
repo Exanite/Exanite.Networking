@@ -13,7 +13,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             await SignInIfNeeded();
 
-            var allocation = await RelayService.CreateAllocationAsync(2);
+            var allocation = await RelayService.Value.CreateAllocationAsync(2);
             var relayData = UtpUtility.CreateHostRelayData(allocation);
 
             var networkSettings = new NetworkSettings();
@@ -34,7 +34,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private async UniTask UpdateJoinCode(Allocation allocation)
         {
-            var joinCode = await RelayService.GetJoinCodeAsync(allocation.AllocationId);
+            var joinCode = await RelayService.Value.GetJoinCodeAsync(allocation.AllocationId);
             Settings.JoinCode = joinCode;
         }
     }

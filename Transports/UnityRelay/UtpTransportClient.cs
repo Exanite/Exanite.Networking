@@ -12,7 +12,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             await SignInIfNeeded();
 
-            var allocation = await RelayService.JoinAllocationAsync(Settings.JoinCode);
+            var allocation = await RelayService.Value.JoinAllocationAsync(Settings.JoinCode);
             var relayData = UtpUtility.CreatePlayerRelayData(allocation);
 
             var networkSettings = new NetworkSettings();

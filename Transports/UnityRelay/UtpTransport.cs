@@ -25,8 +25,8 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected Queue<TransportConnectionStatusEventArgs> eventQueue;
 
         [Inject] private UtpTransportSettings settings;
-        [Inject] protected IRelayService RelayService;
-        [Inject] protected IAuthenticationService AuthenticationService;
+        [Inject] protected LazyInject<IRelayService> RelayService;
+        [Inject] protected LazyInject<IAuthenticationService> AuthenticationService;
 
         public UtpTransportSettings Settings => settings;
 
@@ -184,9 +184,9 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected async UniTask SignInIfNeeded()
         {
-            if (Settings.AutoSignInToUnityServices && !AuthenticationService.IsSignedIn)
+            if (Settings.AutoSignInToUnityServices && !AuthenticationService.Value.IsSignedIn)
             {
-                await AuthenticationService.SignInAnonymouslyAsync();
+                await AuthenticationService.Value.SignInAnonymouslyAsync();
             }
         }
 
