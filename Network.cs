@@ -16,8 +16,8 @@ namespace Exanite.Networking
         private NetDataReader cachedReader;
         private NetDataWriter cachedWriter;
 
-        private bool hasNotifiedPacketHandlersOfStart;
         private Queue<ConnectionStatusEventArgs> eventQueue;
+        private LocalConnectionStatus previousStatus;
 
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
@@ -90,54 +90,6 @@ namespace Exanite.Networking
             connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
         }
 
-        protected void PushEvents()
-        {
-            if (!hasNotifiedPacketHandlersOfStart && Status == LocalConnectionStatus.Started)
-            {
-                hasNotifiedPacketHandlersOfStart = true;
-
-                foreach (var packetHandler in packetHandlers.Values)
-                {
-                    packetHandler.OnNetworkStarted(this);
-                }
-            }
-
-            if (hasNotifiedPacketHandlersOfStart)
-            {
-                while (eventQueue.TryDequeue(out var e))
-                {
-                    switch (e.Status)
-                    {
-                        case RemoteConnectionStatus.Started:
-                        {
-                            ConnectionStarted?.Invoke(this, e.Connection);
-
-                            break;
-                        }
-                        case RemoteConnectionStatus.Stopped:
-                        {
-                            ConnectionStopped?.Invoke(this, e.Connection);
-
-                            break;
-                        }
-                        default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
-                    }
-
-                    ConnectionStatus?.Invoke(this, e.Connection, e.Status);
-                }
-            }
-
-            if (hasNotifiedPacketHandlersOfStart && Status == LocalConnectionStatus.Stopped)
-            {
-                hasNotifiedPacketHandlersOfStart = false;
-
-                foreach (var packetHandler in packetHandlers.Values)
-                {
-                    packetHandler.OnNetworkStopped(this);
-                }
-            }
-        }
-
         protected void ValidateIsReadyToSend()
         {
             if (!IsReady)
@@ -177,6 +129,61 @@ namespace Exanite.Networking
 
             cachedWriter.Put(handler.HandlerId);
             cachedWriter.Put(writer.Data, 0, writer.Length);
+        }
+
+        private void PushEvents()
+        {
+            void ProcessEventQueue()
+            {
+                while (eventQueue.TryDequeue(out var e))
+                {
+                    switch (e.Status)
+                    {
+                        case RemoteConnectionStatus.Started:
+                        {
+                            ConnectionStarted?.Invoke(this, e.Connection);
+
+                            break;
+                        }
+                        case RemoteConnectionStatus.Stopped:
+                        {
+                            ConnectionStopped?.Invoke(this, e.Connection);
+
+                            break;
+                        }
+                        default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
+                    }
+
+                    ConnectionStatus?.Invoke(this, e.Connection, e.Status);
+                }
+            }
+
+            if (previousStatus == LocalConnectionStatus.Stopped && Status == LocalConnectionStatus.Started)
+            {
+                previousStatus = Status;
+
+                foreach (var packetHandler in packetHandlers.Values)
+                {
+                    packetHandler.OnNetworkStarted(this);
+                }
+            }
+
+            if (Status == LocalConnectionStatus.Started)
+            {
+                ProcessEventQueue();
+            }
+
+            if (previousStatus == LocalConnectionStatus.Started && Status == LocalConnectionStatus.Stopped)
+            {
+                previousStatus = Status;
+
+                ProcessEventQueue();
+
+                foreach (var packetHandler in packetHandlers.Values)
+                {
+                    packetHandler.OnNetworkStopped(this);
+                }
+            }
         }
 
         private void OnConnectionStarted(NetworkConnection connection)
