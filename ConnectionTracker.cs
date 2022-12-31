@@ -48,6 +48,10 @@ namespace Exanite.Networking
         public bool RemoveNetworkConnection(ITransport transport, int transportConnectionId)
         {
             var connection = GetNetworkConnection(transport, transportConnectionId);
+            if (connection == null)
+            {
+                return false;
+            }
 
             return RemoveNetworkConnection(connection.Id);
         }
