@@ -88,7 +88,7 @@ namespace Exanite.Networking
                 connectionLookUp.Add(connection.Transport, transportConnections);
             }
 
-            transportConnections.Add(connection.Id, connection);
+            transportConnections.Add(connection.TransportConnectionId, connection);
         }
     }
 }
