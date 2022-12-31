@@ -8,7 +8,7 @@ namespace Exanite.Networking
     public class ConnectionTracker
     {
         private readonly Dictionary<int, NetworkConnection> connections = new();
-        private readonly Dictionary<ITransport, Dictionary<int, NetworkConnection>> connectionLookUp = new();
+        private readonly Dictionary<ITransport, Dictionary<int, NetworkConnection>> connectionLookup = new();
 
         private readonly ConnectionFactory connectionFactory;
 
@@ -24,7 +24,7 @@ namespace Exanite.Networking
 
         public NetworkConnection GetNetworkConnection(ITransport transport, int transportConnectionId)
         {
-            if (connectionLookUp.TryGetValue(transport, out var transportConnections)
+            if (connectionLookup.TryGetValue(transport, out var transportConnections)
                 && transportConnections.TryGetValue(transportConnectionId, out var connection))
             {
                 return connection;
@@ -38,7 +38,7 @@ namespace Exanite.Networking
             var connection = connectionFactory.CreateNetworkConnection(transport, transportConnectionId);
 
             connections.Add(connection.Id, connection);
-            AddToLookUp(connection);
+            AddToLookup(connection);
 
             ConnectionAdded?.Invoke(connection);
 
@@ -61,6 +61,8 @@ namespace Exanite.Networking
             if (connections.TryGetValue(connectionId, out var connection))
             {
                 connections.Remove(connectionId);
+                RemoveFromLookup(connection);
+
                 ConnectionRemoved?.Invoke(connection);
 
                 return true;
@@ -71,7 +73,7 @@ namespace Exanite.Networking
 
         public void Clear()
         {
-            connectionLookUp.Clear();
+            connectionLookup.Clear();
 
             var idsToRemove = connections.Keys.ToList();
             foreach (var connectionId in idsToRemove)
@@ -80,15 +82,25 @@ namespace Exanite.Networking
             }
         }
 
-        private void AddToLookUp(NetworkConnection connection)
+        private void AddToLookup(NetworkConnection connection)
         {
-            if (!connectionLookUp.TryGetValue(connection.Transport, out var transportConnections))
+            if (!connectionLookup.TryGetValue(connection.Transport, out var transportConnections))
             {
                 transportConnections = new Dictionary<int, NetworkConnection>();
-                connectionLookUp.Add(connection.Transport, transportConnections);
+                connectionLookup.Add(connection.Transport, transportConnections);
             }
 
             transportConnections.Add(connection.TransportConnectionId, connection);
+        }
+
+        private void RemoveFromLookup(NetworkConnection connection)
+        {
+            if (!connectionLookup.TryGetValue(connection.Transport, out var transportConnections))
+            {
+                return;
+            }
+
+            transportConnections.Remove(connection.TransportConnectionId);
         }
     }
 }
