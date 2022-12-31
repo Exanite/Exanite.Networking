@@ -119,29 +119,38 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void StopConnection(bool handleEvents)
         {
-            if (Status == LocalConnectionStatus.Stopped)
+            try
             {
-                return;
-            }
+                if (Status != LocalConnectionStatus.Stopped)
+                {
+                    foreach (var connection in connections.Values)
+                    {
+                        connection.Disconnect(Driver);
+                        connectionIdsToRemove.Add(connection.InternalId);
+                    }
 
-            foreach (var connection in connections.Values)
+                    RemoveDisconnectedConnections();
+
+                    if (Driver.IsCreated)
+                    {
+                        Driver.ScheduleUpdate().Complete();
+                    }
+
+                    if (handleEvents)
+                    {
+                        PushEvents();
+                    }
+                }
+            }
+            finally
             {
-                connection.Disconnect(Driver);
-                connectionIdsToRemove.Add(connection.InternalId);
+                eventQueue.Clear();
+                connections.Clear();
+
+                Driver.Dispose();
+
+                Status = LocalConnectionStatus.Stopped;
             }
-
-            RemoveDisconnectedConnections();
-
-            Driver.ScheduleUpdate().Complete();
-
-            if (handleEvents)
-            {
-                PushEvents();
-            }
-
-            Driver.Dispose();
-
-            Status = LocalConnectionStatus.Stopped;
         }
 
         public RemoteConnectionStatus GetConnectionStatus(int connectionId)
@@ -167,7 +176,8 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             // Based off of Unity's Simple Relay Sample (using UTP) package
             var pipeline = sendType == SendType.Reliable ? ReliablePipeline : UnreliablePipeline;
-            var buffer = new NativeArray<byte>(data.Count, Allocator.Persistent);
+
+            using var buffer = new NativeArray<byte>(data.Count, Allocator.Temp);
             NativeArray<byte>.Copy(data.Array, data.Offset, buffer, 0, data.Count);
 
             var writeStatus = Driver.BeginSend(pipeline, connection, out var writer);
@@ -178,8 +188,6 @@ namespace Exanite.Networking.Transports.UnityRelay
 
             writer.WriteBytes(buffer);
             Driver.EndSend(writer);
-
-            buffer.Dispose();
         }
 
         protected async UniTask SignInIfNeeded()
@@ -238,13 +246,11 @@ namespace Exanite.Networking.Transports.UnityRelay
         private void OnNetworkReceive(DataStreamReader stream, UnityNetworkConnection connection, NetworkPipeline pipeline)
         {
             // Based off of Unity's Simple Relay Sample (using UTP) package
-            var buffer = new NativeArray<byte>(stream.Length, Allocator.Temp);
+            using var buffer = new NativeArray<byte>(stream.Length, Allocator.Temp);
             stream.ReadBytes(buffer);
 
             var data = new ArraySegment<byte>(buffer.ToArray());
             var sendType = pipeline == ReliablePipeline ? SendType.Reliable : SendType.Unreliable;
-
-            buffer.Dispose();
 
             ReceivedData?.Invoke(this, new TransportReceivedDataEventArgs(connection.InternalId, data, sendType));
         }
