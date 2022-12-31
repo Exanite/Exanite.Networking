@@ -200,7 +200,13 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected async UniTask CreateAndBindNetworkDriver(NetworkSettings networkSettings)
         {
+            if (!this)
+            {
+                throw new NetworkException($"{GetType().Name} was destroyed while starting connection");
+            }
+
             Driver = NetworkDriver.Create(networkSettings);
+
             if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
             {
                 throw new NetworkException("Failed to bind to local address");
