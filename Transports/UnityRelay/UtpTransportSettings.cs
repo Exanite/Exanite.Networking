@@ -10,7 +10,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         public string JoinCode
         {
             get => joinCode;
-            set => joinCode = value;
+            set => joinCode = value?.ToUpper();
         }
 
         public bool AutoSignInToUnityServices
