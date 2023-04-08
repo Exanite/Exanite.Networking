@@ -1,6 +1,5 @@
 {
     "name": "Exanite.Networking",
-    "rootNamespace": "",
     "references": [
         "Exanite.Core",
         "LiteNetLib",
