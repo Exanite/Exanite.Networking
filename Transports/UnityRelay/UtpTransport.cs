@@ -222,7 +222,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void CreateNetworkPipelines()
         {
-            ReliablePipeline = Driver.CreatePipeline(typeof(ReliableSequencedPipelineStage));
+            ReliablePipeline = Driver.CreatePipeline(typeof(FragmentationPipelineStage), typeof(ReliableSequencedPipelineStage));
             UnreliablePipeline = Driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
         }
 
