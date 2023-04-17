@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using LiteNetLib.Utils;
+﻿using LiteNetLib.Utils;
 using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public static class NetSerializationExtensions
+    public static partial class NetSerializationUtility
     {
         // Methods are from the link below, adapted to work for LiteNetLib
         // https://github.com/LukeStampfli/DarkriftSerializationExtensions/blob/master/DarkriftSerializationExtensions/DarkriftSerializationExtensions/SerializationExtensions.cs
@@ -40,39 +38,6 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Reads a <see cref="Guid"/> (16 bytes)
-        /// </summary>
-        public static Guid GetGuid(this NetDataReader reader)
-        {
-            return new Guid(reader.GetBytesWithLength());
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="List{T}"/>
-        /// </summary>
-        public static List<T> GetListWithCount<T>(this NetDataReader reader, List<T> list = null) where T : INetSerializable, new()
-        {
-            var count = reader.GetInt();
-
-            if (list == null)
-            {
-                list = new List<T>(count);
-            }
-            else
-            {
-                list.Clear();
-                list.Capacity = count;
-            }
-
-            for (var i = 0; i < count; i++)
-            {
-                list.Add(reader.Get<T>());
-            }
-
-            return list;
-        }
-
-        /// <summary>
         ///     Writes a <see cref="Vector3"/> (12 bytes)
         /// </summary>
         public static void Put(this NetDataWriter writer, Vector3 value)
@@ -100,32 +65,6 @@ namespace Exanite.Networking
             writer.Put(value.x);
             writer.Put(value.y);
             writer.Put(value.z);
-        }
-
-        /// <summary>
-        ///     Writes a <see cref="Guid"/> (16 bytes)
-        /// </summary>
-        public static void Put(this NetDataWriter writer, Guid value)
-        {
-            writer.PutBytesWithLength(value.ToByteArray());
-        }
-
-        /// <summary>
-        ///     Writes a <see cref="List{T}"/>
-        /// </summary>
-        public static void PutListWithCount<T>(this NetDataWriter writer, List<T> list) where T : INetSerializable, new()
-        {
-            if (list == null)
-            {
-                throw new ArgumentNullException(nameof(list));
-            }
-
-            writer.Put(list.Count);
-
-            for (var i = 0; i < list.Count; i++)
-            {
-                writer.Put(list[i]);
-            }
         }
     }
 }
