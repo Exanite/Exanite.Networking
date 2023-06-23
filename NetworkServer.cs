@@ -7,10 +7,11 @@ using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
-    public class NetworkServer : Network, INetworkServer
+    public class NetworkServer : Network
     {
         [Required] [OdinSerialize] private List<ITransportServer> transports = new();
 
+        public override bool IsServer => true;
         public IReadOnlyList<ITransportServer> Transports => transports;
 
         public override async UniTask StartConnection()

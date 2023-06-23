@@ -4,7 +4,7 @@ using LiteNetLib.Utils;
 
 namespace Exanite.Networking
 {
-    public static partial class NetSerializationUtility
+    public static partial class SerializationUtility
     {
         /// <summary>
         ///     Reads a Brotli compressed <see cref="string"/>

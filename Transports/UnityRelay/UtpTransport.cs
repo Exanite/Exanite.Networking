@@ -32,7 +32,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public LocalConnectionStatus Status { get; protected set; }
 
-        public event EventHandler<ITransport, TransportReceivedDataEventArgs> ReceivedData;
+        public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
         private void Awake()
@@ -258,7 +258,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             var data = new ArraySegment<byte>(buffer.ToArray());
             var sendType = pipeline == ReliablePipeline ? SendType.Reliable : SendType.Unreliable;
 
-            ReceivedData?.Invoke(this, new TransportReceivedDataEventArgs(connection.InternalId, data, sendType));
+            DataReceived?.Invoke(this, new TransportDataReceivedEventArgs(connection.InternalId, data, sendType));
         }
     }
 }

@@ -2,9 +2,9 @@ using System;
 
 namespace Exanite.Networking.Transports
 {
-    public readonly struct TransportReceivedDataEventArgs
+    public readonly struct TransportDataReceivedEventArgs
     {
-        public TransportReceivedDataEventArgs(int connectionId, ArraySegment<byte> data, SendType sendType)
+        public TransportDataReceivedEventArgs(int connectionId, ArraySegment<byte> data, SendType sendType)
         {
             ConnectionId = connectionId;
             Data = data;

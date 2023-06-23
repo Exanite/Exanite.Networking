@@ -21,6 +21,8 @@ namespace Exanite.Networking
 
         public void Disconnect()
         {
+            // Todo Prevent queued messages from being processed after disconnecting.
+            // Disconnect does not prevent queued messages from being processed. This allows potentially invalid data to be processed by the user of this API.
             Transport.DisconnectConnection(TransportConnectionId);
         }
     }

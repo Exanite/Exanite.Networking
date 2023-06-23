@@ -3,7 +3,7 @@ using LiteNetLib.Utils;
 
 namespace Exanite.Networking
 {
-    public static partial class NetSerializationUtility
+    public static partial class SerializationUtility
     {
         /// <summary>
         ///     Reads a <see cref="Guid"/> (16 bytes)

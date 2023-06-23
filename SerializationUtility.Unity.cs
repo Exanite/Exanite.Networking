@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public static partial class NetSerializationUtility
+    public static partial class SerializationUtility
     {
         // Methods are from the link below, adapted to work for LiteNetLib
         // https://github.com/LukeStampfli/DarkriftSerializationExtensions/blob/master/DarkriftSerializationExtensions/DarkriftSerializationExtensions/SerializationExtensions.cs

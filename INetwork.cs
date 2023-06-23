@@ -6,6 +6,9 @@ namespace Exanite.Networking
 {
     public interface INetwork
     {
+        public bool IsServer { get; }
+        public bool IsClient => !IsServer;
+
         public LocalConnectionStatus Status { get; }
         public bool IsReady { get; }
 

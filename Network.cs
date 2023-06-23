@@ -19,6 +19,8 @@ namespace Exanite.Networking
         private Queue<ConnectionStatusEventArgs> eventQueue;
         private LocalConnectionStatus previousStatus;
 
+        public abstract bool IsServer { get; }
+
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
@@ -112,13 +114,13 @@ namespace Exanite.Networking
         protected void RegisterTransportEvents(ITransport transport)
         {
             transport.ConnectionStatus += Transport_OnConnectionStatus;
-            transport.ReceivedData += Transport_OnReceivedData;
+            transport.DataReceived += Transport_OnDataReceived;
         }
 
         protected void UnregisterTransportEvents(ITransport transport)
         {
             transport.ConnectionStatus += Transport_OnConnectionStatus;
-            transport.ReceivedData -= Transport_OnReceivedData;
+            transport.DataReceived -= Transport_OnDataReceived;
         }
 
         protected virtual void OnTickTransports() {}
@@ -216,7 +218,7 @@ namespace Exanite.Networking
             }
         }
 
-        private void Transport_OnReceivedData(ITransport transport, TransportReceivedDataEventArgs e)
+        private void Transport_OnDataReceived(ITransport transport, TransportDataReceivedEventArgs e)
         {
             var connection = connectionTracker.GetNetworkConnection(transport, e.ConnectionId);
             if (connection == null)

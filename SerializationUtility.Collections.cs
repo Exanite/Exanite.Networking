@@ -4,12 +4,12 @@ using LiteNetLib.Utils;
 
 namespace Exanite.Networking
 {
-    public static partial class NetSerializationUtility
+    public static partial class SerializationUtility
     {
         /// <summary>
         ///     Reads a <see cref="List{T}"/>
         /// </summary>
-        public static List<T> GetListWithCount<T>(this NetDataReader reader, List<T> list = null) where T : INetSerializable, new()
+        public static List<T> GetListWithCount<T>(this NetDataReader reader, List<T> list = null) where T : INetworkSerializable, new()
         {
             var count = reader.GetInt();
 
@@ -17,15 +17,21 @@ namespace Exanite.Networking
             {
                 list = new List<T>(count);
             }
-            else
+
+            list.Clear();
+
+            // List.EnsureCapacity does not exist in Unity 2021.3.18, which is the Unity version this library is developed against
+            if (list.Capacity < count)
             {
-                list.Clear();
                 list.Capacity = count;
             }
 
             for (var i = 0; i < count; i++)
             {
-                list.Add(reader.Get<T>());
+                var value = new T();
+                value.Deserialize(reader);
+
+                list.Add(value);
             }
 
             return list;
@@ -34,7 +40,7 @@ namespace Exanite.Networking
         /// <summary>
         ///     Writes a <see cref="List{T}"/>
         /// </summary>
-        public static void PutListWithCount<T>(this NetDataWriter writer, List<T> list) where T : INetSerializable, new()
+        public static void PutListWithCount<T>(this NetDataWriter writer, List<T> list) where T : INetworkSerializable, new()
         {
             if (list == null)
             {
@@ -45,7 +51,7 @@ namespace Exanite.Networking
 
             for (var i = 0; i < list.Count; i++)
             {
-                writer.Put(list[i]);
+                list[i].Serialize(writer);
             }
         }
     }

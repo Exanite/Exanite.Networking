@@ -7,9 +7,11 @@ using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
-    public class NetworkClient : Network, INetworkClient
+    public class NetworkClient : Network
     {
         [Required] [OdinSerialize] private ITransportClient transport;
+
+        public override bool IsServer => false;
 
         public ITransportClient Transport => transport;
         public NetworkConnection ServerConnection => Connections.Values.FirstOrDefault();
