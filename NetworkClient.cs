@@ -14,7 +14,7 @@ namespace Exanite.Networking
         public override bool IsServer => false;
 
         public ITransportClient Transport => transport;
-        public NetworkConnection ServerConnection => Connections.Values.FirstOrDefault();
+        public NetworkConnection ServerConnection => Connections.FirstOrDefault();
 
         protected override void Awake()
         {

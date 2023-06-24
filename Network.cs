@@ -8,7 +8,7 @@ using Sirenix.OdinInspector;
 
 namespace Exanite.Networking
 {
-    public abstract class Network : SerializedMonoBehaviour, INetwork
+    public abstract class Network : SerializedMonoBehaviour, IPacketHandlerManager
     {
         private ConnectionTracker connectionTracker;
         private Dictionary<int, IPacketHandler> packetHandlers;
@@ -20,14 +20,17 @@ namespace Exanite.Networking
         private LocalConnectionStatus previousStatus;
 
         public abstract bool IsServer { get; }
+        public bool IsClient => !IsServer;
 
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
-        public IReadOnlyDictionary<int, NetworkConnection> Connections => connectionTracker.Connections;
+        public IEnumerable<NetworkConnection> Connections => connectionTracker.Connections.Values;
 
-        public event ConnectionStatusEvent ConnectionStatus;
+        public event NetworkStartedEvent NetworkStarted;
+        public event NetworkStoppedEvent NetworkStopped;
+
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
 
@@ -104,8 +107,8 @@ namespace Exanite.Networking
         {
             switch (Status)
             {
-                case LocalConnectionStatus.Starting: throw new InvalidOperationException($"{GetType().Name} is already starting.");
-                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType().Name} is already started.");
+                case LocalConnectionStatus.Starting: throw new InvalidOperationException($"{GetType()} is already starting.");
+                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType()} is already started.");
             }
         }
 
@@ -155,8 +158,6 @@ namespace Exanite.Networking
                         }
                         default: throw ExceptionUtility.NotSupportedEnumValue(e.Status);
                     }
-
-                    ConnectionStatus?.Invoke(this, e.Connection, e.Status);
                 }
             }
 
@@ -164,6 +165,7 @@ namespace Exanite.Networking
             {
                 previousStatus = Status;
 
+                NetworkStarted?.Invoke(this);
                 foreach (var packetHandler in packetHandlers.Values)
                 {
                     packetHandler.OnNetworkStarted(this);
@@ -178,9 +180,9 @@ namespace Exanite.Networking
             if (previousStatus == LocalConnectionStatus.Started && Status == LocalConnectionStatus.Stopped)
             {
                 previousStatus = Status;
-
                 ProcessEventQueue();
 
+                NetworkStopped?.Invoke(this);
                 foreach (var packetHandler in packetHandlers.Values)
                 {
                     packetHandler.OnNetworkStopped(this);
