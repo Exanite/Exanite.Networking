@@ -5,6 +5,7 @@ using Exanite.Core.Utilities;
 using Exanite.Networking.Transports;
 using LiteNetLib.Utils;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace Exanite.Networking
 {
@@ -62,7 +63,7 @@ namespace Exanite.Networking
 
         public void Tick()
         {
-            if (Status == LocalConnectionStatus.Started && !AreTransportsAllStarted())
+            if (Status == LocalConnectionStatus.Started && AreAnyTransportsStopped())
             {
                 StopConnection();
             }
@@ -87,7 +88,15 @@ namespace Exanite.Networking
 
         public void SendAsPacketHandler(IPacketHandler handler, NetworkConnection connection, NetDataWriter writer, SendType sendType)
         {
-            ValidateIsReadyToSend();
+            if (!IsReady)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is not ready to send.");
+            }
+
+            if (!connection.Transport.IsReady)
+            {
+                throw new InvalidOperationException($"{GetType().Name} is not ready to send on transport {connection.Transport.GetType().Name}.");
+            }
 
             WritePacketHandlerDataToCachedWriter(handler, writer);
 
@@ -95,24 +104,16 @@ namespace Exanite.Networking
             connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
         }
 
-        protected void ValidateIsReadyToSend()
-        {
-            if (!IsReady)
-            {
-                throw new InvalidOperationException($"{GetType()} is not ready to send.");
-            }
-        }
-
         protected void ValidateIsStopped()
         {
             switch (Status)
             {
-                case LocalConnectionStatus.Starting: throw new InvalidOperationException($"{GetType()} is already starting.");
-                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType()} is already started.");
+                case LocalConnectionStatus.Starting: throw new InvalidOperationException($"{GetType().Name} is already starting.");
+                case LocalConnectionStatus.Started: throw new InvalidOperationException($"{GetType().Name} is already started.");
             }
         }
 
-        protected abstract bool AreTransportsAllStarted();
+        protected abstract bool AreAnyTransportsStopped();
 
         protected void RegisterTransportEvents(ITransport transport)
         {
@@ -225,6 +226,8 @@ namespace Exanite.Networking
             var connection = connectionTracker.GetNetworkConnection(transport, e.ConnectionId);
             if (connection == null)
             {
+                Debug.LogWarning($"Received data from invalid connection {e.ConnectionId}.");
+
                 return;
             }
 
@@ -233,6 +236,8 @@ namespace Exanite.Networking
             var packetHandlerId = cachedReader.GetInt();
             if (!packetHandlers.TryGetValue(packetHandlerId, out var packetHandler))
             {
+                Debug.LogWarning($"Received data for packet handler that is not registered. Packet handler ID: {packetHandlerId}");
+
                 return;
             }
 

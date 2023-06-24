@@ -4,8 +4,15 @@ namespace Exanite.Networking.Transports.UnityRelay
 {
     public class UtpTransportSettings : MonoBehaviour
     {
+        [SerializeField] private int maxConnections = 2;
         [SerializeField] private string joinCode = string.Empty;
         [SerializeField] private bool autoSignInToUnityServices = true;
+
+        public int MaxConnections
+        {
+            get => maxConnections;
+            set => maxConnections = value;
+        }
 
         public string JoinCode
         {

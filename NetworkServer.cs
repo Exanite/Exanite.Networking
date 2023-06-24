@@ -22,12 +22,7 @@ namespace Exanite.Networking
 
             try
             {
-                foreach (var transport in transports)
-                {
-                    RegisterTransportEvents(transport);
-
-                    await transport.StartConnection();
-                }
+                await UniTask.WhenAll(transports.Select(transport => StartTransport(transport)));
             }
             catch (Exception e)
             {
@@ -35,8 +30,6 @@ namespace Exanite.Networking
 
                 throw new NetworkException($"Exception thrown while starting {GetType().Name}", e);
             }
-
-            Status = LocalConnectionStatus.Started;
         }
 
         public override void StopConnection()
@@ -51,17 +44,17 @@ namespace Exanite.Networking
             Status = LocalConnectionStatus.Stopped;
         }
 
-        protected override bool AreTransportsAllStarted()
+        protected override bool AreAnyTransportsStopped()
         {
             foreach (var transport in transports)
             {
-                if (transport.Status != LocalConnectionStatus.Started)
+                if (transport.Status == LocalConnectionStatus.Stopped)
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
         protected override void OnTickTransports()
@@ -72,6 +65,22 @@ namespace Exanite.Networking
             {
                 transport.Tick();
             }
+        }
+
+        private async UniTask StartTransport(ITransportServer transport)
+        {
+            RegisterTransportEvents(transport);
+
+            await transport.StartConnection();
+
+            if (Status == LocalConnectionStatus.Stopped)
+            {
+                throw new NetworkException($"{GetType().Name} was stopped while starting transports");
+            }
+
+            // The Network is considered Started if one transport has started.
+            // This is because one transport starting slowly should not block the others from communicating.
+            Status = LocalConnectionStatus.Started;
         }
     }
 }

@@ -2,18 +2,22 @@ using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
-using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 
 namespace Exanite.Networking
 {
     public class NetworkClient : Network
     {
-        [Required] [OdinSerialize] private ITransportClient transport;
+        [OdinSerialize] private ITransportClient transport;
 
         public override bool IsServer => false;
 
-        public ITransportClient Transport => transport;
+        public ITransportClient Transport
+        {
+            get => transport;
+            set => transport = value;
+        }
+
         public NetworkConnection ServerConnection => Connections.FirstOrDefault();
 
         protected override void Awake()
@@ -28,11 +32,6 @@ namespace Exanite.Networking
             ConnectionStopped -= OnConnectionStopped;
 
             base.OnDestroy();
-        }
-
-        public void SetTransport(ITransportClient transport)
-        {
-            this.transport = transport;
         }
 
         public override async UniTask StartConnection()
@@ -66,9 +65,9 @@ namespace Exanite.Networking
             Status = LocalConnectionStatus.Stopped;
         }
 
-        protected override bool AreTransportsAllStarted()
+        protected override bool AreAnyTransportsStopped()
         {
-            return transport.Status == LocalConnectionStatus.Started;
+            return transport.Status == LocalConnectionStatus.Stopped;
         }
 
         protected override void OnTickTransports()

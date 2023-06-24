@@ -90,7 +90,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
         {
             if (!connections.TryGetValue(connectionId, out var peer))
             {
-                return;
+                throw new NetworkException("Attempted to send data to invalid connection.");
             }
 
             peer.Send(data.Array, data.Offset, data.Count, sendType.ToDeliveryMethod());

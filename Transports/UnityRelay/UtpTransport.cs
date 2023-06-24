@@ -63,7 +63,9 @@ namespace Exanite.Networking.Transports.UnityRelay
             UnityNetworkConnection incomingConnection;
             while ((incomingConnection = Driver.Accept()) != default)
             {
-                OnConnectionStarted(incomingConnection);
+                // Accepted connections are immediately ready.
+                BeginTrackingConnection(incomingConnection);
+                OnConnectionReady(incomingConnection);
             }
 
             foreach (var (_, connection) in connections)
@@ -73,6 +75,15 @@ namespace Exanite.Networking.Transports.UnityRelay
                 {
                     switch (networkEvent)
                     {
+                        case NetworkEvent.Type.Connect:
+                        {
+                            // While this looks like a general connect event,
+                            // this is only received on the client when the connection to the server is fully established.
+                            // All other connections are handled above.
+                            OnConnectionReady(connection);
+
+                            break;
+                        }
                         case NetworkEvent.Type.Data:
                         {
                             OnNetworkReceive(stream, connection, pipeline);
@@ -171,7 +182,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             if (!connections.TryGetValue(connectionId, out var connection))
             {
-                return;
+                throw new NetworkException("Attempted to send data to invalid connection.");
             }
 
             // Based off of Unity's Simple Relay Sample (using UTP) package
@@ -183,7 +194,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             var writeStatus = Driver.BeginSend(pipeline, connection, out var writer);
             if (writeStatus != (int)StatusCode.Success)
             {
-                return;
+                throw new NetworkException($"Failed to send data: {(StatusCode)writeStatus}");
             }
 
             writer.WriteBytes(buffer);
@@ -234,10 +245,23 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
         }
 
-        protected virtual void OnConnectionStarted(UnityNetworkConnection connection)
+        /// <summary>
+        ///     Begin tracking the connection and polling events for the connection.
+        ///     <para/>
+        ///     Must be called before <see cref="OnConnectionReady"/>>.
+        /// </summary>
+        protected virtual void BeginTrackingConnection(UnityNetworkConnection connection)
         {
             connections.Add(connection.InternalId, connection);
+        }
 
+        /// <summary>
+        ///     Notify event listeners that the connection is ready.
+        ///     <para/>
+        ///     Must be called after <see cref="BeginTrackingConnection"/>.
+        /// </summary>
+        protected virtual void OnConnectionReady(UnityNetworkConnection connection)
+        {
             eventQueue.Enqueue(new TransportConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
         }
 
