@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public abstract class Network : SerializedMonoBehaviour, IPacketHandlerManager
+    public abstract class Network : SerializedMonoBehaviour, IPacketHandlerNetwork
     {
         private ConnectionTracker connectionTracker;
         private Dictionary<int, IPacketHandler> packetHandlers;

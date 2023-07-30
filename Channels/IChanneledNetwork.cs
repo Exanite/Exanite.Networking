@@ -1,6 +1,6 @@
 namespace Exanite.Networking.Channels
 {
-    public interface INetworkChannelManager : INetwork
+    public interface IChanneledNetwork : INetwork
     {
         public INetworkChannel<T> CreateChannel<T>(string key, SendType sendType = SendType.Reliable) where T : INetworkSerializable, new()
         {

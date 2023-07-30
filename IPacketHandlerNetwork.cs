@@ -3,7 +3,7 @@ using LiteNetLib.Utils;
 
 namespace Exanite.Networking
 {
-    public interface IPacketHandlerManager : INetwork
+    public interface IPacketHandlerNetwork : INetwork
     {
         public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers { get; }
 

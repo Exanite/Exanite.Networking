@@ -22,7 +22,7 @@ namespace Exanite.Networking.Channels
         private readonly NetDataWriter writer = new();
         private readonly List<MessageHandler<TMessage>> messageHandlers = new();
 
-        public NetworkChannel(NetworkChannelManager network, string key, TMessage message, SendType sendType)
+        public NetworkChannel(ChanneledNetwork network, string key, TMessage message, SendType sendType)
         {
             Key = key;
             Network = network;

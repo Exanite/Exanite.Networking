@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Exanite.Networking.Channels
 {
-    public class NetworkChannelManager : IPacketHandler, INetworkChannelManager
+    public class ChanneledNetwork : IPacketHandler, IChanneledNetwork
     {
         private class ConnectionInfo
         {
@@ -36,7 +36,7 @@ namespace Exanite.Networking.Channels
             ChannelData,
         }
 
-        private readonly IPacketHandlerManager network;
+        private readonly IPacketHandlerNetwork network;
 
         private readonly NetDataWriter writer = new();
         private readonly NetworkProtocol localProtocol = new();
@@ -47,7 +47,7 @@ namespace Exanite.Networking.Channels
         private readonly Dictionary<NetworkConnection, ConnectionInfo> connections = new();
         private readonly HashSet<NetworkConnection> readyConnections = new();
 
-        public NetworkChannelManager(int handlerId, IPacketHandlerManager network)
+        public ChanneledNetwork(int handlerId, IPacketHandlerNetwork network)
         {
             this.network = network;
             HandlerId = handlerId;
