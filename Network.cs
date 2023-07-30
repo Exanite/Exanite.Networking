@@ -224,6 +224,8 @@ namespace Exanite.Networking
 
         private void Transport_OnDataReceived(ITransport transport, TransportDataReceivedEventArgs e)
         {
+            // This also prevents data from disconnected connections from being processed (intentional)
+            // This is because connectionTracker always has the current list of active connections
             var connection = connectionTracker.GetNetworkConnection(transport, e.ConnectionId);
             if (connection == null)
             {
