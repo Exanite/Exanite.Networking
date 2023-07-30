@@ -18,7 +18,7 @@ namespace Exanite.Networking
         private NetDataReader cachedReader;
         private NetDataWriter cachedWriter;
 
-        private Queue<ConnectionStatusEventArgs> eventQueue;
+        private Queue<ConnectionStatusEventArgs> connectionEventQueue;
         private LocalConnectionStatus previousStatus;
 
         public abstract bool IsServer { get; }

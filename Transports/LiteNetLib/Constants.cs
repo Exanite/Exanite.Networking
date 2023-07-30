@@ -1,4 +1,4 @@
-﻿namespace Exanite.Networking
+﻿namespace Exanite.Networking.Transports.LiteNetLib
 {
     public static class Constants
     {
@@ -6,7 +6,5 @@
         public const string DefaultRemoteAddress = "localhost";
 
         public const string DefaultConnectionKey = "Exanite.Networking";
-
-        public const string DefaultReason = "No reason was provided";
     }
 }
