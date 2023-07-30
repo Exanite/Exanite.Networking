@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Core.Utilities;
 using LiteNetLib.Utils;
+using Exanite.Networking.Internal;
 using Exanite.Networking.Transports;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -44,7 +45,7 @@ namespace Exanite.Networking
             cachedReader = new NetDataReader();
             cachedWriter = new NetDataWriter();
 
-            eventQueue = new Queue<ConnectionStatusEventArgs>();
+            connectionEventQueue = new Queue<ConnectionStatusEventArgs>();
 
             connectionTracker.ConnectionAdded += OnConnectionStarted;
             connectionTracker.ConnectionRemoved += OnConnectionStopped;
@@ -141,7 +142,7 @@ namespace Exanite.Networking
         {
             void ProcessEventQueue()
             {
-                while (eventQueue.TryDequeue(out var e))
+                while (connectionEventQueue.TryDequeue(out var e))
                 {
                     switch (e.Status)
                     {
@@ -193,12 +194,12 @@ namespace Exanite.Networking
 
         private void OnConnectionStarted(NetworkConnection connection)
         {
-            eventQueue.Enqueue(new ConnectionStatusEventArgs(connection, RemoteConnectionStatus.Started));
+            connectionEventQueue.Enqueue(new ConnectionStatusEventArgs(connection, RemoteConnectionStatus.Started));
         }
 
         private void OnConnectionStopped(NetworkConnection connection)
         {
-            eventQueue.Enqueue(new ConnectionStatusEventArgs(connection, RemoteConnectionStatus.Stopped));
+            connectionEventQueue.Enqueue(new ConnectionStatusEventArgs(connection, RemoteConnectionStatus.Stopped));
         }
 
         private void Transport_OnConnectionStatus(ITransport transport, TransportConnectionStatusEventArgs e)

@@ -1,4 +1,4 @@
-namespace Exanite.Networking
+namespace Exanite.Networking.Internal
 {
     public readonly struct ConnectionStatusEventArgs
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Exanite.Networking.Transports;
 
-namespace Exanite.Networking
+namespace Exanite.Networking.Internal
 {
     public class ConnectionTracker
     {
