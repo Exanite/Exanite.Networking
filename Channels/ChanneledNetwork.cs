@@ -65,15 +65,13 @@ namespace Exanite.Networking.Channels
         public bool IsReady => Status == LocalConnectionStatus.Started;
 
         public IEnumerable<NetworkConnection> Connections => readyConnections;
+        public IReadOnlyDictionary<string, INetworkChannel> Channels { get; }
 
         public event NetworkStartedEvent NetworkStarted;
         public event NetworkStoppedEvent NetworkStopped;
 
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
-
-        public IReadOnlyDictionary<string, INetworkChannel> Channels { get; }
-
         public INetworkChannel<T> CreateChannel<T>(string key, T packet, SendType sendType = SendType.Reliable) where T : INetworkSerializable
         {
             if (channelsByKey.ContainsKey(key))
