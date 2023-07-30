@@ -1,14 +1,17 @@
 namespace Exanite.Networking.Channels
 {
-    public interface INetworkChannel<TMessage> where TMessage : INetworkSerializable
+    public interface INetworkChannel
     {
         public string Key { get; }
 
         public bool IsReady { get; }
 
-        public TMessage Message { get; set; }
-
         public INetwork Network { get; }
+    }
+
+    public interface INetworkChannel<TMessage> : INetworkChannel where TMessage : INetworkSerializable
+    {
+        public TMessage Message { get; set; }
 
         public void Send(NetworkConnection connection);
         public void Send(NetworkConnection connection, TMessage message);

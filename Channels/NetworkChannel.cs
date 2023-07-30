@@ -4,15 +4,24 @@ using LiteNetLib.Utils;
 
 namespace Exanite.Networking.Channels
 {
-    public abstract class NetworkChannel
+    public abstract class NetworkChannel : INetworkChannel
     {
         public static readonly int InvalidId = -1;
+
+        protected NetworkChannel(INetwork network, string key, SendType sendType)
+        {
+            Key = key;
+            SendType = sendType;
+            Network = network;
+        }
 
         public string Key { get; protected set; }
         public SendType SendType { get; protected set; }
 
         public int Id { get; set; } = InvalidId;
         public bool IsReady => Id != InvalidId;
+
+        public INetwork Network { get; }
 
         public abstract void OnDataReceived(NetworkConnection connection, NetDataReader reader);
     }
@@ -22,17 +31,12 @@ namespace Exanite.Networking.Channels
         private readonly NetDataWriter writer = new();
         private readonly List<MessageHandler<TMessage>> messageHandlers = new();
 
-        public NetworkChannel(ChanneledNetwork network, string key, TMessage message, SendType sendType)
+        public NetworkChannel(ChanneledNetwork network, string key, TMessage message, SendType sendType) : base(network, key, sendType)
         {
-            Key = key;
-            Network = network;
             Message = message;
-            SendType = sendType;
         }
 
         public TMessage Message { get; set; }
-
-        public INetwork Network { get; }
 
         public event Action<NetworkChannelDataSentEventArgs> DataSent;
 

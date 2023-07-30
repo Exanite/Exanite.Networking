@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Exanite.Core.Collections;
 using LiteNetLib.Utils;
 using UnityEngine;
 
@@ -51,6 +52,8 @@ namespace Exanite.Networking.Channels
         {
             this.network = network;
             HandlerId = handlerId;
+
+            Channels = new ReadOnlyDictionaryWrapper<string, NetworkChannel, INetworkChannel>(channelsByKey);
         }
 
         public int HandlerId { get; }
@@ -68,6 +71,8 @@ namespace Exanite.Networking.Channels
 
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
+
+        public IReadOnlyDictionary<string, INetworkChannel> Channels { get; }
 
         public INetworkChannel<T> CreateChannel<T>(string key, T packet, SendType sendType = SendType.Reliable) where T : INetworkSerializable
         {
