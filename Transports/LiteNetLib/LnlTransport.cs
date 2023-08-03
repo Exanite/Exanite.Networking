@@ -61,17 +61,23 @@ namespace Exanite.Networking.Transports.LiteNetLib
 
         protected void StopConnection(bool handleEvents)
         {
-            netManager.DisconnectAll();
-
-            if (handleEvents)
+            try
             {
-                netManager.PollEvents();
+                netManager.DisconnectAll();
+
+                if (handleEvents)
+                {
+                    netManager.PollEvents();
+                }
+
+                netManager.Stop();
             }
+            finally
+            {
+                connections.Clear();
 
-            netManager.Stop();
-            connections.Clear();
-
-            Status = LocalConnectionStatus.Stopped;
+                Status = LocalConnectionStatus.Stopped;
+            }
         }
 
         public RemoteConnectionStatus GetConnectionStatus(int connectionId)
