@@ -69,6 +69,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             }
 
             netManager.Stop();
+            connections.Clear();
 
             Status = LocalConnectionStatus.Stopped;
         }

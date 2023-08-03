@@ -22,7 +22,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         protected Dictionary<int, UnityNetworkConnection> connections;
         protected List<int> connectionIdsToRemove;
 
-        protected Queue<TransportConnectionStatusEventArgs> eventQueue;
+        protected Queue<TransportConnectionStatusEventArgs> connectionEventQueue;
 
         [Inject] private UtpTransportSettings settings;
         [Inject] protected LazyInject<IRelayService> RelayService;
@@ -40,7 +40,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             connections = new Dictionary<int, UnityNetworkConnection>();
             connectionIdsToRemove = new List<int>();
 
-            eventQueue = new Queue<TransportConnectionStatusEventArgs>();
+            connectionEventQueue = new Queue<TransportConnectionStatusEventArgs>();
         }
 
         private void OnDestroy()
@@ -155,7 +155,8 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
             finally
             {
-                eventQueue.Clear();
+                connectionEventQueue.Clear();
+                connectionIdsToRemove.Clear();
                 connections.Clear();
 
                 Driver.Dispose();
@@ -239,7 +240,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected void PushEvents()
         {
-            while (eventQueue.TryDequeue(out var e))
+            while (connectionEventQueue.TryDequeue(out var e))
             {
                 ConnectionStatus?.Invoke(this, e);
             }
@@ -262,14 +263,14 @@ namespace Exanite.Networking.Transports.UnityRelay
         /// </summary>
         protected virtual void OnConnectionReady(UnityNetworkConnection connection)
         {
-            eventQueue.Enqueue(new TransportConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
+            connectionEventQueue.Enqueue(new TransportConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
         }
 
         protected virtual void OnConnectionStopped(int connectionId)
         {
             if (connections.Remove(connectionId))
             {
-                eventQueue.Enqueue(new TransportConnectionStatusEventArgs(connectionId, RemoteConnectionStatus.Stopped));
+                connectionEventQueue.Enqueue(new TransportConnectionStatusEventArgs(connectionId, RemoteConnectionStatus.Stopped));
             }
         }
 
