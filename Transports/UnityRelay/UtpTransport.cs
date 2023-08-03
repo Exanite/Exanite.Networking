@@ -155,9 +155,8 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
             finally
             {
-                connectionEventQueue.Clear();
-                connectionIdsToRemove.Clear();
                 connections.Clear();
+                connectionIdsToRemove.Clear();
 
                 Driver.Dispose();
 
