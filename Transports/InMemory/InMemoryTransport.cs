@@ -119,7 +119,7 @@ namespace Exanite.Networking.Transports.InMemory
         /// Only called from <see cref="InMemoryTransportClient"/>.
         /// </summary>
         /// <remarks>
-        /// It's bad practice to refer to inheriting classes in base class, but it's the easiest way to keep the API mostly hidden.
+        /// It's bad practice to refer to inheriting classes in the base class, but it's the easiest way to keep the API mostly hidden.
         /// </remarks>
         public void OnClientConnected(InMemoryTransportClient client)
         {
