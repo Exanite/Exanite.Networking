@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Collections;
 
 namespace Exanite.Networking.Transports.InMemory
 {
     public class InMemoryTransportServer : InMemoryTransport, ITransportServer
     {
-        public static Dictionary<int, InMemoryTransportServer> Servers { get; } = new();
+        public static TwoWayDictionary<int, InMemoryTransportServer> Servers { get; } = new();
 
         public override UniTask StartConnection()
         {
@@ -17,6 +18,13 @@ namespace Exanite.Networking.Transports.InMemory
             Status = LocalConnectionStatus.Started;
 
             return UniTask.CompletedTask;
+        }
+
+        protected override void StopConnection(bool handleEvents)
+        {
+            base.StopConnection(handleEvents);
+
+            Servers.Inverse.Remove(this);
         }
     }
 }
