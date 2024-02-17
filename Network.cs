@@ -5,12 +5,20 @@ using Exanite.Core.Utilities;
 using LiteNetLib.Utils;
 using Exanite.Networking.Internal;
 using Exanite.Networking.Transports;
-using Sirenix.OdinInspector;
 using UnityEngine;
+#if ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace Exanite.Networking
 {
-    public abstract class Network : SerializedMonoBehaviour, IPacketHandlerNetwork
+    public abstract class Network :
+#if ODIN_INSPECTOR // Todo This is hacky. The serialization model shouldn't changed based on whether Odin Inspector is installed.
+        SerializedMonoBehaviour,
+#else
+        MonoBehaviour,
+#endif
+        IPacketHandlerNetwork
     {
         private ConnectionTracker connectionTracker;
         private Dictionary<int, IPacketHandler> packetHandlers;

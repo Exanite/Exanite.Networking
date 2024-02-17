@@ -2,14 +2,19 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
+#if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
+#endif
 
 namespace Exanite.Networking
 {
     public class NetworkServer : Network
     {
-        [Required] [OdinSerialize] private List<ITransportServer> transports = new();
+#if ODIN_INSPECTOR
+        [Required] [OdinSerialize]
+#endif
+        private List<ITransportServer> transports = new();
 
         public override bool IsServer => true;
         public IReadOnlyList<ITransportServer> Transports => transports;
