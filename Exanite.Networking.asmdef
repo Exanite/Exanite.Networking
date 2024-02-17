@@ -1,5 +1,6 @@
 {
     "name": "Exanite.Networking",
+    "rootNamespace": "",
     "references": [
         "Exanite.Core",
         "LiteNetLib",
@@ -22,6 +23,12 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.transport",
+            "expression": "",
+            "define": "UNITY_TRANSPORT"
+        }
+    ],
     "noEngineReferences": false
 }
