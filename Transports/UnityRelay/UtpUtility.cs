@@ -1,3 +1,4 @@
+#if UNITY_TRANSPORT
 using System.Collections.Generic;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
@@ -107,3 +108,4 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
     }
 }
+#endif

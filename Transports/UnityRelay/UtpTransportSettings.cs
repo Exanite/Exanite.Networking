@@ -1,3 +1,4 @@
+#if UNITY_TRANSPORT
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.UnityRelay
@@ -28,3 +29,4 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
     }
 }
+#endif

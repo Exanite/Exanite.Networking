@@ -1,3 +1,4 @@
+#if UNITY_TRANSPORT
 using Cysharp.Threading.Tasks;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
@@ -39,3 +40,4 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
     }
 }
+#endif

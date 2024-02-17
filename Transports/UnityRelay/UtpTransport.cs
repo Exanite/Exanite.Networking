@@ -1,3 +1,4 @@
+#if UNITY_TRANSPORT
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -286,3 +287,4 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
     }
 }
+#endif
