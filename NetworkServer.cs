@@ -49,6 +49,17 @@ namespace Exanite.Networking
             Status = LocalConnectionStatus.Stopped;
         }
 
+        public void SetTransports(IEnumerable<ITransportServer> transports)
+        {
+            if (Status != LocalConnectionStatus.Stopped)
+            {
+                throw new NetworkException($"Setting transports is only possible when the {GetType().Name} is stopped");
+            }
+
+            this.transports.Clear();
+            this.transports.AddRange(transports);
+        }
+
         protected override bool AreAnyTransportsStopped()
         {
             foreach (var transport in transports)

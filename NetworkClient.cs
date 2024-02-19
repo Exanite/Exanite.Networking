@@ -16,13 +16,7 @@ namespace Exanite.Networking
         private ITransportClient transport;
 
         public override bool IsServer => false;
-
-        public ITransportClient Transport
-        {
-            get => transport;
-            set => transport = value;
-        }
-
+        public ITransportClient Transport => transport;
         public NetworkConnection ServerConnection => Connections.FirstOrDefault();
 
         protected override void Awake()
@@ -68,6 +62,16 @@ namespace Exanite.Networking
             UnregisterTransportEvents(transport);
 
             Status = LocalConnectionStatus.Stopped;
+        }
+
+        public void SetTransport(ITransportClient transport)
+        {
+            if (Status != LocalConnectionStatus.Stopped)
+            {
+                throw new NetworkException($"Setting transports is only possible when the {GetType().Name} is stopped");
+            }
+
+            this.transport = transport;
         }
 
         protected override bool AreAnyTransportsStopped()
