@@ -73,7 +73,7 @@ namespace Exanite.Networking.Channels
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
 
-        public INetworkChannel<T> CreateChannel<T>(string key, T packet, SendType sendType = SendType.Reliable) where T : INetworkSerializable
+        public INetworkChannel<T> CreateChannel<T>(string key, T packet, SendType sendType) where T : INetworkSerializable
         {
             if (channelsByKey.ContainsKey(key))
             {
