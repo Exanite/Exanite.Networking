@@ -6,9 +6,9 @@ namespace Exanite.Networking.Internal
     {
         private int nextConnectionId;
 
-        public NetworkConnection CreateNetworkConnection(ITransport transport, int transportConnectionId)
+        public NetworkConnection CreateNetworkConnection(INetwork network, ITransport transport, int transportConnectionId)
         {
-            return new NetworkConnection(nextConnectionId++, transport, transportConnectionId);
+            return new NetworkConnection(network, nextConnectionId++, transport, transportConnectionId);
         }
     }
 }

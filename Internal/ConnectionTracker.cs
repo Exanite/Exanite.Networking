@@ -10,10 +10,12 @@ namespace Exanite.Networking.Internal
         private readonly Dictionary<int, NetworkConnection> connections = new();
         private readonly Dictionary<ITransport, Dictionary<int, NetworkConnection>> connectionLookup = new();
 
+        private readonly INetwork network;
         private readonly ConnectionFactory connectionFactory;
 
-        public ConnectionTracker(ConnectionFactory connectionFactory)
+        public ConnectionTracker(INetwork network, ConnectionFactory connectionFactory)
         {
+            this.network = network;
             this.connectionFactory = connectionFactory;
         }
 
@@ -35,7 +37,7 @@ namespace Exanite.Networking.Internal
 
         public NetworkConnection AddNetworkConnection(ITransport transport, int transportConnectionId)
         {
-            var connection = connectionFactory.CreateNetworkConnection(transport, transportConnectionId);
+            var connection = connectionFactory.CreateNetworkConnection(network, transport, transportConnectionId);
 
             connections.Add(connection.Id, connection);
             AddToLookup(connection);

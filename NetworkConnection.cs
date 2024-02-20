@@ -4,14 +4,16 @@ namespace Exanite.Networking
 {
     public class NetworkConnection
     {
-        public NetworkConnection(int id, ITransport transport, int transportConnectionId)
+        public NetworkConnection(INetwork network, int id, ITransport transport, int transportConnectionId)
         {
+            Network = network;
             Id = id;
 
             Transport = transport;
             TransportConnectionId = transportConnectionId;
         }
 
+        public INetwork Network { get; }
         public int Id { get; }
 
         public ITransport Transport { get; }

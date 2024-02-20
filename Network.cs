@@ -47,7 +47,7 @@ namespace Exanite.Networking
         protected virtual void Awake()
         {
             var connectionFactory = new ConnectionFactory();
-            connectionTracker = new ConnectionTracker(connectionFactory);
+            connectionTracker = new ConnectionTracker(this, connectionFactory);
             packetHandlers = new Dictionary<int, IPacketHandler>();
 
             cachedReader = new NetDataReader();
