@@ -13,10 +13,10 @@ namespace Exanite.Networking
 #if ODIN_INSPECTOR
         [OdinSerialize]
 #endif
-        private ITransportClient transport;
+        private ITransport transport;
 
         public override bool IsServer => false;
-        public ITransportClient Transport => transport;
+        public ITransport Transport => transport;
         public NetworkConnection ServerConnection => Connections.FirstOrDefault();
 
         protected override void Awake()
@@ -43,6 +43,7 @@ namespace Exanite.Networking
             {
                 RegisterTransportEvents(transport);
 
+                transport.SetNetwork(this);
                 await transport.StartConnection();
             }
             catch (Exception e)
@@ -58,13 +59,14 @@ namespace Exanite.Networking
         public override void StopConnection()
         {
             transport.StopConnection();
+            transport.SetNetwork(null);
 
             UnregisterTransportEvents(transport);
 
             Status = LocalConnectionStatus.Stopped;
         }
 
-        public void SetTransport(ITransportClient transport)
+        public void SetTransport(ITransport transport)
         {
             if (Status != LocalConnectionStatus.Stopped)
             {

@@ -20,7 +20,7 @@ namespace Exanite.Networking.Transports.InMemory
         public InMemoryTransportSettings Settings { get; }
 
         public INetwork Network { get; set; }
-        public LocalConnectionStatus Status { get; protected set; }
+        public LocalConnectionStatus Status { get; private set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
@@ -75,7 +75,7 @@ namespace Exanite.Networking.Transports.InMemory
             Servers.Inverse.Remove(this);
         }
 
-        protected virtual void StopConnection(bool handleEvents)
+        private void StopConnection(bool handleEvents)
         {
             try
             {
@@ -129,7 +129,7 @@ namespace Exanite.Networking.Transports.InMemory
             remoteTransport.dataEventQueue.Enqueue(new TransportDataReceivedEventArgs(remoteId, data.ToArray(), sendType));
         }
 
-        protected void PushEvents()
+        private void PushEvents()
         {
             while (connectionEventQueue.TryDequeue(out var e))
             {

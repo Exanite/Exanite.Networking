@@ -17,22 +17,22 @@ namespace Exanite.Networking.Transports.UnityRelay
 {
     public class UtpTransport : ITransport
     {
-        protected NetworkDriver Driver;
-        protected NetworkPipeline ReliablePipeline;
-        protected NetworkPipeline UnreliablePipeline;
+        private NetworkDriver Driver;
+        private NetworkPipeline ReliablePipeline;
+        private NetworkPipeline UnreliablePipeline;
 
-        protected Dictionary<int, UnityNetworkConnection> connections = new();
-        protected List<int> connectionIdsToRemove = new();
+        private Dictionary<int, UnityNetworkConnection> connections = new();
+        private List<int> connectionIdsToRemove = new();
 
-        protected Queue<TransportConnectionStatusEventArgs> connectionEventQueue = new();
+        private Queue<TransportConnectionStatusEventArgs> connectionEventQueue = new();
 
-        protected readonly IRelayService RelayService;
-        protected readonly IAuthenticationService AuthenticationService;
+        private readonly IRelayService RelayService;
+        private readonly IAuthenticationService AuthenticationService;
 
         public UtpTransportSettings Settings { get; }
 
         public INetwork Network { get; set; }
-        public LocalConnectionStatus Status { get; protected set; }
+        public LocalConnectionStatus Status { get; private set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
@@ -193,7 +193,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             StopConnection(true);
         }
 
-        protected void StopConnection(bool handleEvents)
+        private void StopConnection(bool handleEvents)
         {
             try
             {
@@ -266,7 +266,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             Driver.EndSend(writer);
         }
 
-        protected async UniTask SignInIfNeeded()
+        private async UniTask SignInIfNeeded()
         {
             if (Settings.AutoSignInToUnityServices && !AuthenticationService.IsSignedIn)
             {
@@ -274,7 +274,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
         }
 
-        protected async UniTask CreateAndBindNetworkDriver(NetworkSettings networkSettings)
+        private async UniTask CreateAndBindNetworkDriver(NetworkSettings networkSettings)
         {
             Driver = NetworkDriver.Create(networkSettings);
 
@@ -291,13 +291,13 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
         }
 
-        protected void CreateNetworkPipelines()
+        private void CreateNetworkPipelines()
         {
             ReliablePipeline = Driver.CreatePipeline(typeof(FragmentationPipelineStage), typeof(ReliableSequencedPipelineStage));
             UnreliablePipeline = Driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
         }
 
-        protected void PushEvents()
+        private void PushEvents()
         {
             while (connectionEventQueue.TryDequeue(out var e))
             {
@@ -310,7 +310,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         /// <para/>
         /// Must be called before <see cref="OnConnectionReady"/>>.
         /// </summary>
-        protected virtual void BeginTrackingConnection(UnityNetworkConnection connection)
+        private void BeginTrackingConnection(UnityNetworkConnection connection)
         {
             connections.Add(connection.InternalId, connection);
         }
@@ -320,12 +320,12 @@ namespace Exanite.Networking.Transports.UnityRelay
         /// <para/>
         /// Must be called after <see cref="BeginTrackingConnection"/>.
         /// </summary>
-        protected virtual void OnConnectionReady(UnityNetworkConnection connection)
+        private void OnConnectionReady(UnityNetworkConnection connection)
         {
             connectionEventQueue.Enqueue(new TransportConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
         }
 
-        protected virtual void OnConnectionStopped(int connectionId)
+        private void OnConnectionStopped(int connectionId)
         {
             if (connections.Remove(connectionId))
             {

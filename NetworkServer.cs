@@ -14,10 +14,10 @@ namespace Exanite.Networking
 #if ODIN_INSPECTOR
         [Required] [OdinSerialize]
 #endif
-        private List<ITransportServer> transports = new();
+        private List<ITransport> transports = new();
 
         public override bool IsServer => true;
-        public IReadOnlyList<ITransportServer> Transports => transports;
+        public IReadOnlyList<ITransport> Transports => transports;
 
         public override async UniTask StartConnection()
         {
@@ -42,6 +42,7 @@ namespace Exanite.Networking
             foreach (var transport in transports)
             {
                 transport.StopConnection();
+                transport.SetNetwork(null);
 
                 UnregisterTransportEvents(transport);
             }
@@ -49,7 +50,7 @@ namespace Exanite.Networking
             Status = LocalConnectionStatus.Stopped;
         }
 
-        public void SetTransports(IEnumerable<ITransportServer> transports)
+        public void SetTransports(IEnumerable<ITransport> transports)
         {
             if (Status != LocalConnectionStatus.Stopped)
             {
@@ -83,10 +84,11 @@ namespace Exanite.Networking
             }
         }
 
-        private async UniTask StartTransport(ITransportServer transport)
+        private async UniTask StartTransport(ITransport transport)
         {
             RegisterTransportEvents(transport);
 
+            transport.SetNetwork(this);
             await transport.StartConnection();
 
             if (Status == LocalConnectionStatus.Stopped)

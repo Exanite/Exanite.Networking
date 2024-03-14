@@ -8,15 +8,15 @@ namespace Exanite.Networking.Transports.LiteNetLib
 {
     public class LnlTransport : ITransport
     {
-        protected EventBasedNetListener listener;
-        protected NetManager netManager;
+        private EventBasedNetListener listener;
+        private NetManager netManager;
 
-        protected Dictionary<int, NetPeer> connections;
+        private Dictionary<int, NetPeer> connections;
 
         public LnlTransportSettings Settings { get; }
 
         public INetwork Network { get; set; }
-        public LocalConnectionStatus Status { get; protected set; }
+        public LocalConnectionStatus Status { get; private set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
@@ -81,7 +81,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             StopConnection(true);
         }
 
-        protected void StopConnection(bool handleEvents)
+        private void StopConnection(bool handleEvents)
         {
             try
             {
@@ -125,13 +125,13 @@ namespace Exanite.Networking.Transports.LiteNetLib
             peer.Send(data.Array, data.Offset, data.Count, sendType.ToDeliveryMethod());
         }
 
-        protected virtual void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
+        private void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
         {
             var data = new ArraySegment<byte>(reader.RawData, reader.Position, reader.AvailableBytes);
             DataReceived?.Invoke(this, new TransportDataReceivedEventArgs(peer.Id, data, deliveryMethod.ToSendType()));
         }
 
-        protected virtual void OnPeerConnected(NetPeer peer)
+        private void OnPeerConnected(NetPeer peer)
         {
             if (Network.IsClient)
             {
@@ -143,7 +143,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             ConnectionStatus?.Invoke(this, new TransportConnectionStatusEventArgs(peer.Id, RemoteConnectionStatus.Started));
         }
 
-        protected virtual void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
+        private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             if (Network.IsClient)
             {
@@ -156,7 +156,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             }
         }
 
-        protected void OnConnectionRequest(ConnectionRequest request)
+        private void OnConnectionRequest(ConnectionRequest request)
         {
             if (Network.IsServer)
             {
