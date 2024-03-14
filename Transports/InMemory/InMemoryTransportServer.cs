@@ -6,7 +6,6 @@ namespace Exanite.Networking.Transports.InMemory
 {
     public class InMemoryTransportServer : InMemoryTransport, ITransportServer
     {
-        public static TwoWayDictionary<int, InMemoryTransportServer> Servers { get; } = new();
 
         public InMemoryTransportServer(InMemoryTransportSettings settings) : base(settings) {}
 

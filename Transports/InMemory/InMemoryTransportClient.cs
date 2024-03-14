@@ -11,7 +11,7 @@ namespace Exanite.Networking.Transports.InMemory
             // Prevent one frame delay issues when both server and client are started at the same time.
             await UniTask.Yield();
 
-            if (!InMemoryTransportServer.Servers.TryGetValue(Settings.VirtualPort, out var server))
+            if (!Servers.TryGetValue(Settings.VirtualPort, out var server))
             {
                 throw new NetworkException($"No {typeof(InMemoryTransportServer).Name} active on virtual port {Settings.VirtualPort}.");
             }

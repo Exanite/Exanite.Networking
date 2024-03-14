@@ -8,6 +8,8 @@ namespace Exanite.Networking.Transports.InMemory
 {
     public abstract class InMemoryTransport : ITransport
     {
+        public static TwoWayDictionary<int, InMemoryTransportServer> Servers { get; } = new();
+
         private TwoWayDictionary<int, InMemoryTransport> connections = new();
 
         private Queue<TransportConnectionStatusEventArgs> connectionEventQueue = new();
