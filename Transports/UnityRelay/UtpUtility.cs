@@ -7,8 +7,8 @@ using Unity.Services.Relay.Models;
 namespace Exanite.Networking.Transports.UnityRelay
 {
     /// <summary>
-    ///     Helper methods from Unity Relay docs:
-    ///     https://docs.unity.com/relay/relay-and-utp.html
+    /// Helper methods from Unity Relay docs:
+    /// https://docs.unity.com/relay/relay-and-utp.html
     /// </summary>
     public static class UtpUtility
     {

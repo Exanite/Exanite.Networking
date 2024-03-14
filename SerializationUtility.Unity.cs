@@ -9,7 +9,7 @@ namespace Exanite.Networking
         // https://github.com/LukeStampfli/DarkriftSerializationExtensions/blob/master/DarkriftSerializationExtensions/DarkriftSerializationExtensions/SerializationExtensions.cs
 
         /// <summary>
-        ///     Reads a <see cref="Vector3"/> (12 bytes)
+        /// Reads a <see cref="Vector3"/> (12 bytes)
         /// </summary>
         public static Vector3 GetVector3(this NetDataReader reader)
         {
@@ -17,7 +17,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Reads a <see cref="Vector2"/> (8 bytes)
+        /// Reads a <see cref="Vector2"/> (8 bytes)
         /// </summary>
         public static Vector2 GetVector2(this NetDataReader reader)
         {
@@ -25,7 +25,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Reads a <see cref="Quaternion"/> (12 bytes)
+        /// Reads a <see cref="Quaternion"/> (12 bytes)
         /// </summary>
         public static Quaternion GetQuaternion(this NetDataReader reader)
         {
@@ -38,7 +38,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Writes a <see cref="Vector3"/> (12 bytes)
+        /// Writes a <see cref="Vector3"/> (12 bytes)
         /// </summary>
         public static void Put(this NetDataWriter writer, Vector3 value)
         {
@@ -48,7 +48,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Writes a <see cref="Vector2"/> (8 bytes)
+        /// Writes a <see cref="Vector2"/> (8 bytes)
         /// </summary>
         public static void Put(this NetDataWriter writer, Vector2 value)
         {
@@ -57,7 +57,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Writes a <see cref="Quaternion"/> (12 bytes)
+        /// Writes a <see cref="Quaternion"/> (12 bytes)
         /// </summary>
         public static void Put(this NetDataWriter writer, Quaternion value)
         {

@@ -17,22 +17,22 @@ namespace Exanite.Networking.Channels
         private enum MessageType
         {
             /// <summary>
-            ///     Step 1. Sent by both server and client to confirm protocol compatibility.
+            /// Step 1. Sent by both server and client to confirm protocol compatibility.
             /// </summary>
             ChannelList,
 
             /// <summary>
-            ///     Step 2. Sent by server to tell client which channel ids will be used.
+            /// Step 2. Sent by server to tell client which channel ids will be used.
             /// </summary>
             ChannelIdAssignment,
 
             /// <summary>
-            ///     Step 3. Send by both server and client when they are ready to receive.
+            /// Step 3. Send by both server and client when they are ready to receive.
             /// </summary>
             ReadyToReceive,
 
             /// <summary>
-            ///     Data sent or received by a channel.
+            /// Data sent or received by a channel.
             /// </summary>
             ChannelData,
         }

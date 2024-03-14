@@ -6,7 +6,7 @@ namespace Exanite.Networking
     public static partial class SerializationUtility
     {
         /// <summary>
-        ///     Reads a <see cref="Guid"/> (16 bytes)
+        /// Reads a <see cref="Guid"/> (16 bytes)
         /// </summary>
         public static Guid GetGuid(this NetDataReader reader)
         {
@@ -14,7 +14,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Writes a <see cref="Guid"/> (16 bytes)
+        /// Writes a <see cref="Guid"/> (16 bytes)
         /// </summary>
         public static void Put(this NetDataWriter writer, Guid value)
         {

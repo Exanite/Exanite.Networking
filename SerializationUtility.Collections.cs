@@ -7,7 +7,7 @@ namespace Exanite.Networking
     public static partial class SerializationUtility
     {
         /// <summary>
-        ///     Reads a <see cref="List{T}"/>
+        /// Reads a <see cref="List{T}"/>
         /// </summary>
         public static List<T> GetListWithCount<T>(this NetDataReader reader, List<T> list = null) where T : INetworkSerializable, new()
         {
@@ -38,7 +38,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Writes a <see cref="List{T}"/>
+        /// Writes a <see cref="List{T}"/>
         /// </summary>
         public static void PutListWithCount<T>(this NetDataWriter writer, List<T> list) where T : INetworkSerializable, new()
         {

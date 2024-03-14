@@ -247,9 +247,9 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
 
         /// <summary>
-        ///     Begin tracking the connection and polling events for the connection.
-        ///     <para/>
-        ///     Must be called before <see cref="OnConnectionReady"/>>.
+        /// Begin tracking the connection and polling events for the connection.
+        /// <para/>
+        /// Must be called before <see cref="OnConnectionReady"/>>.
         /// </summary>
         protected virtual void BeginTrackingConnection(UnityNetworkConnection connection)
         {
@@ -257,9 +257,9 @@ namespace Exanite.Networking.Transports.UnityRelay
         }
 
         /// <summary>
-        ///     Notify event listeners that the connection is ready.
-        ///     <para/>
-        ///     Must be called after <see cref="BeginTrackingConnection"/>.
+        /// Notify event listeners that the connection is ready.
+        /// <para/>
+        /// Must be called after <see cref="BeginTrackingConnection"/>.
         /// </summary>
         protected virtual void OnConnectionReady(UnityNetworkConnection connection)
         {

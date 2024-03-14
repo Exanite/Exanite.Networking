@@ -7,7 +7,7 @@ namespace Exanite.Networking
     public static partial class SerializationUtility
     {
         /// <summary>
-        ///     Reads a Brotli compressed <see cref="string"/>
+        /// Reads a Brotli compressed <see cref="string"/>
         /// </summary>
         public static string GetCompressedString(this NetDataReader reader)
         {
@@ -18,7 +18,7 @@ namespace Exanite.Networking
         }
 
         /// <summary>
-        ///     Writes a Brotli compressed <see cref="string"/>
+        /// Writes a Brotli compressed <see cref="string"/>
         /// </summary>
         public static void PutCompressedString(this NetDataWriter writer, string value)
         {
