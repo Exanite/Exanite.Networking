@@ -26,9 +26,9 @@ namespace Exanite.Networking.Transports.InMemory
 
         private void Awake()
         {
-            connections = new();
-            connectionEventQueue = new();
-            dataEventQueue = new();
+            connections = new TwoWayDictionary<int, InMemoryTransport>();
+            connectionEventQueue = new Queue<TransportConnectionStatusEventArgs>();
+            dataEventQueue = new Queue<TransportDataReceivedEventArgs>();
         }
 
         private void OnDestroy()
