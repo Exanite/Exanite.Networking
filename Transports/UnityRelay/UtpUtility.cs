@@ -61,36 +61,27 @@ namespace Exanite.Networking.Transports.UnityRelay
             return relayServerData;
         }
 
-        private static RelayAllocationId ConvertFromAllocationIdBytes(byte[] allocationIdBytes)
+        private static unsafe RelayAllocationId ConvertFromAllocationIdBytes(byte[] allocationIdBytes)
         {
-            unsafe
+            fixed (byte* ptr = allocationIdBytes)
             {
-                fixed (byte* ptr = allocationIdBytes)
-                {
-                    return RelayAllocationId.FromBytePointer(ptr, allocationIdBytes.Length);
-                }
+                return RelayAllocationId.FromBytePointer(ptr, allocationIdBytes.Length);
             }
         }
 
-        private static RelayConnectionData ConvertConnectionData(byte[] connectionData)
+        private static unsafe RelayConnectionData ConvertConnectionData(byte[] connectionData)
         {
-            unsafe
+            fixed (byte* ptr = connectionData)
             {
-                fixed (byte* ptr = connectionData)
-                {
-                    return RelayConnectionData.FromBytePointer(ptr, RelayConnectionData.k_Length);
-                }
+                return RelayConnectionData.FromBytePointer(ptr, RelayConnectionData.k_Length);
             }
         }
 
-        private static RelayHMACKey ConvertFromHmac(byte[] hmac)
+        private static unsafe RelayHMACKey ConvertFromHmac(byte[] hmac)
         {
-            unsafe
+            fixed (byte* ptr = hmac)
             {
-                fixed (byte* ptr = hmac)
-                {
-                    return RelayHMACKey.FromBytePointer(ptr, RelayHMACKey.k_Length);
-                }
+                return RelayHMACKey.FromBytePointer(ptr, RelayHMACKey.k_Length);
             }
         }
 
