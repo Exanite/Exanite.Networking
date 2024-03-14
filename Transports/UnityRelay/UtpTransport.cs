@@ -6,13 +6,16 @@ using Exanite.Core.Events;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Error;
+using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
 using UnityNetworkConnection = Unity.Networking.Transport.NetworkConnection;
+using UnityConnectionStatus = Unity.Networking.Transport.NetworkConnection.State;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
-    public abstract class UtpTransport : ITransport
+    public class UtpTransport : ITransport
     {
         protected NetworkDriver Driver;
         protected NetworkPipeline ReliablePipeline;
@@ -28,6 +31,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         public UtpTransportSettings Settings { get; }
 
+        public INetwork Network { get; set; }
         public LocalConnectionStatus Status { get; protected set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
@@ -118,7 +122,71 @@ namespace Exanite.Networking.Transports.UnityRelay
             connectionIdsToRemove.Clear();
         }
 
-        public abstract UniTask StartConnection();
+        public async UniTask StartConnection()
+        {
+            if (Network.IsServer)
+            {
+                Status = LocalConnectionStatus.Starting;
+
+                await SignInIfNeeded();
+
+                var allocation = await RelayService.CreateAllocationAsync(Settings.MaxConnections);
+                var relayData = UtpUtility.CreateHostRelayData(allocation);
+
+                var networkSettings = new NetworkSettings();
+                networkSettings.WithRelayParameters(ref relayData);
+
+                await CreateAndBindNetworkDriver(networkSettings);
+                CreateNetworkPipelines();
+
+                if (Driver.Listen() != 0)
+                {
+                    throw new NetworkException("Failed to start listening to connections");
+                }
+
+                await UpdateJoinCode(allocation);
+
+                Status = LocalConnectionStatus.Started;
+            }
+
+            if (Network.IsClient)
+            {
+                Status = LocalConnectionStatus.Starting;
+
+                await SignInIfNeeded();
+
+                var allocation = await RelayService.JoinAllocationAsync(Settings.JoinCode);
+                var relayData = UtpUtility.CreatePlayerRelayData(allocation);
+
+                var networkSettings = new NetworkSettings();
+                networkSettings.WithRelayParameters(ref relayData);
+
+                await CreateAndBindNetworkDriver(networkSettings);
+                CreateNetworkPipelines();
+
+                // Notice that Connect is a synchronous method.
+                // The server connection begins in the Connecting state and we must wait until the connection succeeds or fails.
+                var serverConnection = Driver.Connect(relayData.Endpoint);
+                BeginTrackingConnection(serverConnection);
+
+                Status = LocalConnectionStatus.Started;
+
+                // Wait until connected or failed
+                await UniTask.WaitWhile(() => Driver.GetConnectionState(serverConnection) == UnityConnectionStatus.Connecting);
+                if (Driver.GetConnectionState(serverConnection) != UnityConnectionStatus.Connected)
+                {
+                    Status = LocalConnectionStatus.Stopped;
+
+                    throw new NetworkException("Failed to connect.");
+                }
+            }
+        }
+
+        private async UniTask UpdateJoinCode(Allocation allocation)
+        {
+            var joinCode = await RelayService.GetJoinCodeAsync(allocation.AllocationId);
+            Settings.JoinCode = joinCode;
+        }
 
         public void StopConnection()
         {

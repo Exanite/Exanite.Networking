@@ -6,9 +6,9 @@ using Exanite.Core.Events;
 
 namespace Exanite.Networking.Transports.InMemory
 {
-    public abstract class InMemoryTransport : ITransport
+    public class InMemoryTransport : ITransport
     {
-        public static TwoWayDictionary<int, InMemoryTransportServer> Servers { get; } = new();
+        public static TwoWayDictionary<int, InMemoryTransport> Servers { get; } = new();
 
         private TwoWayDictionary<int, InMemoryTransport> connections = new();
 
@@ -19,6 +19,7 @@ namespace Exanite.Networking.Transports.InMemory
 
         public InMemoryTransportSettings Settings { get; }
 
+        public INetwork Network { get; set; }
         public LocalConnectionStatus Status { get; protected set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
@@ -39,11 +40,39 @@ namespace Exanite.Networking.Transports.InMemory
             PushEvents();
         }
 
-        public abstract UniTask StartConnection();
+        public async UniTask StartConnection()
+        {
+            if (Network.IsServer)
+            {
+                if (!Servers.TryAdd(Settings.VirtualPort, this))
+                {
+                    throw new NetworkException($"Virtual port {Settings.VirtualPort} is already in use.");
+                }
+
+                Status = LocalConnectionStatus.Started;
+            }
+
+            if (Network.IsClient)
+            {
+                // Prevent one frame delay issues when both server and client are started at the same time.
+                await UniTask.Yield();
+
+                if (!Servers.TryGetValue(Settings.VirtualPort, out var server))
+                {
+                    throw new NetworkException($"No {typeof(InMemoryTransport).Name} server active on virtual port {Settings.VirtualPort}.");
+                }
+
+                server.OnClientConnected(this);
+
+                Status = LocalConnectionStatus.Started;
+            }
+        }
 
         public void StopConnection()
         {
             StopConnection(true);
+
+            Servers.Inverse.Remove(this);
         }
 
         protected virtual void StopConnection(bool handleEvents)
@@ -113,13 +142,7 @@ namespace Exanite.Networking.Transports.InMemory
             }
         }
 
-        /// <summary>
-        /// Only called from <see cref="InMemoryTransportClient"/>.
-        /// </summary>
-        /// <remarks>
-        /// It's bad practice to refer to inheriting classes in the base class, but it's the easiest way to keep the API mostly hidden.
-        /// </remarks>
-        public void OnClientConnected(InMemoryTransportClient client)
+        private void OnClientConnected(InMemoryTransport client)
         {
             if (connections.Inverse.ContainsKey(client) || client.connections.Inverse.ContainsKey(this))
             {

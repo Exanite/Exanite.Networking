@@ -6,6 +6,7 @@ namespace Exanite.Networking.Transports
 {
     public interface ITransport : IDisposable
     {
+        public INetwork Network { get; set; }
         public LocalConnectionStatus Status { get; }
         public bool IsReady => Status == LocalConnectionStatus.Started;
 
@@ -21,9 +22,22 @@ namespace Exanite.Networking.Transports
         public void DisconnectConnection(int connectionId);
 
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);
+
+        public void SetNetwork(INetwork network)
+        {
+            if (network == null)
+            {
+                Network = null;
+
+                return;
+            }
+
+            if (Network != null)
+            {
+                throw new NetworkException("Transport is already being used in another network");
+            }
+
+            Network = network;
+        }
     }
-
-    public interface ITransportServer : ITransport {}
-
-    public interface ITransportClient : ITransport {}
 }
