@@ -2,19 +2,23 @@
 using Cysharp.Threading.Tasks;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Relay;
+using Unity.Services.Authentication;
+using Unity.Services.Relay;
 using UnityConnectionStatus = Unity.Networking.Transport.NetworkConnection.State;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
     public class UtpTransportClient : UtpTransport, ITransportClient
     {
+        public UtpTransportClient(UtpTransportSettings settings, IRelayService relayService, IAuthenticationService authenticationService) : base(settings, relayService, authenticationService) {}
+
         public override async UniTask StartConnection()
         {
             Status = LocalConnectionStatus.Starting;
 
             await SignInIfNeeded();
 
-            var allocation = await RelayService.Value.JoinAllocationAsync(Settings.JoinCode);
+            var allocation = await RelayService.JoinAllocationAsync(Settings.JoinCode);
             var relayData = UtpUtility.CreatePlayerRelayData(allocation);
 
             var networkSettings = new NetworkSettings();

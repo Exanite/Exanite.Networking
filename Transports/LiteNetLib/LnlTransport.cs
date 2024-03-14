@@ -3,29 +3,27 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Core.Events;
 using LiteNetLib;
-using UniDi;
-using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public abstract class LnlTransport : MonoBehaviour, ITransport
+    public abstract class LnlTransport : ITransport
     {
         protected EventBasedNetListener listener;
         protected NetManager netManager;
 
         protected Dictionary<int, NetPeer> connections;
 
-        [Inject] private LnlTransportSettings settings;
-
-        public LnlTransportSettings Settings => settings;
+        public LnlTransportSettings Settings { get; }
 
         public LocalConnectionStatus Status { get; protected set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
-        protected virtual void Awake()
+        public LnlTransport(LnlTransportSettings settings)
         {
+            Settings = settings;
+
             listener = new EventBasedNetListener();
             netManager = new NetManager(listener);
 
@@ -37,7 +35,7 @@ namespace Exanite.Networking.Transports.LiteNetLib
             listener.ConnectionRequestEvent += OnConnectionRequest;
         }
 
-        protected virtual void OnDestroy()
+        public void Dispose()
         {
             StopConnection(false);
 

@@ -3,48 +3,44 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Core.Events;
-using UniDi;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Error;
 using Unity.Services.Authentication;
 using Unity.Services.Relay;
-using UnityEngine;
 using UnityNetworkConnection = Unity.Networking.Transport.NetworkConnection;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
-    public abstract class UtpTransport : MonoBehaviour, ITransport
+    public abstract class UtpTransport : ITransport
     {
         protected NetworkDriver Driver;
         protected NetworkPipeline ReliablePipeline;
         protected NetworkPipeline UnreliablePipeline;
 
-        protected Dictionary<int, UnityNetworkConnection> connections;
-        protected List<int> connectionIdsToRemove;
+        protected Dictionary<int, UnityNetworkConnection> connections = new();
+        protected List<int> connectionIdsToRemove = new();
 
-        protected Queue<TransportConnectionStatusEventArgs> connectionEventQueue;
+        protected Queue<TransportConnectionStatusEventArgs> connectionEventQueue = new();
 
-        [Inject] private UtpTransportSettings settings;
-        [Inject] protected LazyInject<IRelayService> RelayService;
-        [Inject] protected LazyInject<IAuthenticationService> AuthenticationService;
+        protected readonly IRelayService RelayService;
+        protected readonly IAuthenticationService AuthenticationService;
 
-        public UtpTransportSettings Settings => settings;
+        public UtpTransportSettings Settings { get; }
 
         public LocalConnectionStatus Status { get; protected set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
-        private void Awake()
+        public UtpTransport(UtpTransportSettings settings, IRelayService relayService, IAuthenticationService authenticationService)
         {
-            connections = new Dictionary<int, UnityNetworkConnection>();
-            connectionIdsToRemove = new List<int>();
-
-            connectionEventQueue = new Queue<TransportConnectionStatusEventArgs>();
+            Settings = settings;
+            RelayService = relayService;
+            AuthenticationService = authenticationService;
         }
 
-        private void OnDestroy()
+        public void Dispose()
         {
             StopConnection(false);
         }
@@ -204,19 +200,14 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         protected async UniTask SignInIfNeeded()
         {
-            if (Settings.AutoSignInToUnityServices && !AuthenticationService.Value.IsSignedIn)
+            if (Settings.AutoSignInToUnityServices && !AuthenticationService.IsSignedIn)
             {
-                await AuthenticationService.Value.SignInAnonymouslyAsync();
+                await AuthenticationService.SignInAnonymouslyAsync();
             }
         }
 
         protected async UniTask CreateAndBindNetworkDriver(NetworkSettings networkSettings)
         {
-            if (!this)
-            {
-                throw new NetworkException($"{GetType().Name} was destroyed while starting connection");
-            }
-
             Driver = NetworkDriver.Create(networkSettings);
 
             if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)

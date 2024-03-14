@@ -5,6 +5,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 {
     public class LnlTransportClient : LnlTransport, ITransportClient
     {
+        public LnlTransportClient(LnlTransportSettings settings) : base(settings) {}
+
         public override async UniTask StartConnection()
         {
             Status = LocalConnectionStatus.Starting;

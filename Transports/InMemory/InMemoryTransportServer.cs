@@ -8,6 +8,8 @@ namespace Exanite.Networking.Transports.InMemory
     {
         public static TwoWayDictionary<int, InMemoryTransportServer> Servers { get; } = new();
 
+        public InMemoryTransportServer(InMemoryTransportSettings settings) : base(settings) {}
+
         public override UniTask StartConnection()
         {
             if (!Servers.TryAdd(Settings.VirtualPort, this))
@@ -26,5 +28,6 @@ namespace Exanite.Networking.Transports.InMemory
 
             Servers.Inverse.Remove(this);
         }
+
     }
 }

@@ -4,7 +4,7 @@ using Exanite.Core.Events;
 
 namespace Exanite.Networking.Transports
 {
-    public interface ITransport
+    public interface ITransport : IDisposable
     {
         public LocalConnectionStatus Status { get; }
         public bool IsReady => Status == LocalConnectionStatus.Started;

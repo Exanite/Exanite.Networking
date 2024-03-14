@@ -5,6 +5,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
 {
     public class LnlTransportServer : LnlTransport, ITransportServer
     {
+        public LnlTransportServer(LnlTransportSettings settings) : base(settings) {}
+
         public override UniTask StartConnection()
         {
             netManager.Start(Settings.Port);

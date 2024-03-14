@@ -3,35 +3,31 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Exanite.Core.Collections;
 using Exanite.Core.Events;
-using UniDi;
-using UnityEngine;
 
 namespace Exanite.Networking.Transports.InMemory
 {
-    public abstract class InMemoryTransport : MonoBehaviour, ITransport
+    public abstract class InMemoryTransport : ITransport
     {
-        private TwoWayDictionary<int, InMemoryTransport> connections;
+        private TwoWayDictionary<int, InMemoryTransport> connections = new();
 
-        private Queue<TransportConnectionStatusEventArgs> connectionEventQueue;
-        private Queue<TransportDataReceivedEventArgs> dataEventQueue;
+        private Queue<TransportConnectionStatusEventArgs> connectionEventQueue = new();
+        private Queue<TransportDataReceivedEventArgs> dataEventQueue = new();
 
         private int nextConnectionId = 0;
 
-        [Inject] protected InMemoryTransportSettings Settings { get; }
+        public InMemoryTransportSettings Settings { get; }
 
         public LocalConnectionStatus Status { get; protected set; }
 
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
-        private void Awake()
+        public InMemoryTransport(InMemoryTransportSettings settings)
         {
-            connections = new TwoWayDictionary<int, InMemoryTransport>();
-            connectionEventQueue = new Queue<TransportConnectionStatusEventArgs>();
-            dataEventQueue = new Queue<TransportDataReceivedEventArgs>();
+            Settings = settings;
         }
 
-        private void OnDestroy()
+        public void Dispose()
         {
             StopConnection(false);
         }
