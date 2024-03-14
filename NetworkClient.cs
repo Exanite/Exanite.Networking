@@ -2,17 +2,11 @@ using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Exanite.Networking.Transports;
-#if ODIN_INSPECTOR
-using Sirenix.Serialization;
-#endif
 
 namespace Exanite.Networking
 {
     public class NetworkClient : Network
     {
-#if ODIN_INSPECTOR
-        [OdinSerialize]
-#endif
         private ITransport transport;
 
         public override bool IsServer => false;
