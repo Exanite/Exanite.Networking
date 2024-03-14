@@ -9,15 +9,15 @@ using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public abstract class Network : MonoBehaviour, IPacketHandlerNetwork
+    public abstract class Network : IPacketHandlerNetwork, IDisposable
     {
         private ConnectionTracker connectionTracker;
-        private Dictionary<int, IPacketHandler> packetHandlers;
+        private Dictionary<int, IPacketHandler> packetHandlers = new();
 
-        private NetDataReader cachedReader;
-        private NetDataWriter cachedWriter;
+        private NetDataReader cachedReader = new();
+        private NetDataWriter cachedWriter = new();
 
-        private Queue<ConnectionStatusEventArgs> connectionEventQueue;
+        private Queue<ConnectionStatusEventArgs> connectionEventQueue = new();
         private LocalConnectionStatus previousStatus;
 
         public abstract bool IsServer { get; }
@@ -35,30 +35,19 @@ namespace Exanite.Networking
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
 
-        protected virtual void Awake()
+        public Network()
         {
             var connectionFactory = new ConnectionFactory();
             connectionTracker = new ConnectionTracker(this, connectionFactory);
-            packetHandlers = new Dictionary<int, IPacketHandler>();
-
-            cachedReader = new NetDataReader();
-            cachedWriter = new NetDataWriter();
-
-            connectionEventQueue = new Queue<ConnectionStatusEventArgs>();
 
             connectionTracker.ConnectionAdded += OnConnectionStarted;
             connectionTracker.ConnectionRemoved += OnConnectionStopped;
         }
 
-        protected virtual void OnDestroy()
+        public virtual void Dispose()
         {
             connectionTracker.ConnectionAdded -= OnConnectionStarted;
             connectionTracker.ConnectionRemoved -= OnConnectionStopped;
-        }
-
-        protected virtual void FixedUpdate()
-        {
-            Tick();
         }
 
         public void Tick()

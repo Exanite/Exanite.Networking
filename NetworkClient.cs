@@ -13,18 +13,16 @@ namespace Exanite.Networking
         public ITransport Transport => transport;
         public NetworkConnection ServerConnection => Connections.FirstOrDefault();
 
-        protected override void Awake()
+        public NetworkClient()
         {
-            base.Awake();
-
             ConnectionStopped += OnConnectionStopped;
         }
 
-        protected override void OnDestroy()
+        public override void Dispose()
         {
             ConnectionStopped -= OnConnectionStopped;
 
-            base.OnDestroy();
+            base.Dispose();
         }
 
         public override async UniTask StartConnection()
