@@ -1,9 +1,11 @@
 #if UNITY_TRANSPORT
+using System;
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.UnityRelay
 {
-    public class UtpTransportSettings : MonoBehaviour
+    [Serializable]
+    public class UtpTransportSettings
     {
         [Header("Configuration")]
         [SerializeField] private int maxConnections = 2;

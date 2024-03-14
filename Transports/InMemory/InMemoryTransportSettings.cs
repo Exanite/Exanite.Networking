@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.InMemory
 {
-    public class InMemoryTransportSettings : MonoBehaviour
+    [Serializable]
+    public class InMemoryTransportSettings
     {
         [Header("Configuration")]
         [SerializeField] private int virtualPort = 0;

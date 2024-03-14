@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 
 namespace Exanite.Networking.Transports.LiteNetLib
 {
-    public class LnlTransportSettings : MonoBehaviour
+    [Serializable]
+    public class LnlTransportSettings
     {
         [Header("Configuration")]
         [SerializeField] private string connectionKey = Constants.DefaultConnectionKey;
