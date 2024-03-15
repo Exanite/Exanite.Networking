@@ -12,6 +12,13 @@ namespace Exanite.Networking
         public override bool IsServer => true;
         public IReadOnlyList<ITransport> Transports => transports;
 
+        public NetworkServer() {}
+
+        public NetworkServer(IEnumerable<ITransport> transports) : this()
+        {
+            this.transports = new List<ITransport>(transports);
+        }
+
         public override async UniTask StartConnection()
         {
             ValidateIsStopped();

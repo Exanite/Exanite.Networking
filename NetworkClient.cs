@@ -18,6 +18,11 @@ namespace Exanite.Networking
             ConnectionStopped += OnConnectionStopped;
         }
 
+        public NetworkClient(ITransport transport) : this()
+        {
+            this.transport = transport;
+        }
+
         public override void Dispose()
         {
             ConnectionStopped -= OnConnectionStopped;
