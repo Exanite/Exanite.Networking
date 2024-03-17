@@ -7,6 +7,9 @@ using Exanite.Core.Events;
 
 namespace Exanite.Networking.Transports.InMemory
 {
+    /// <remarks>
+    /// This class is not fully implemented and does not work.
+    /// </remarks>
     public class InMemoryTransport : ITransport
     {
         public static TwoWayDictionary<int, InMemoryTransport> Servers { get; } = new();
