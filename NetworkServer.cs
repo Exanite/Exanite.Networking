@@ -19,6 +19,16 @@ namespace Exanite.Networking
             this.transports = new List<ITransport>(transports);
         }
 
+        public override void Dispose()
+        {
+            foreach (var transport in transports)
+            {
+                transport.Dispose();
+            }
+
+            base.Dispose();
+        }
+
         public override async UniTask StartConnection()
         {
             ValidateIsStopped();

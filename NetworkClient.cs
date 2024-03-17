@@ -26,6 +26,7 @@ namespace Exanite.Networking
         public override void Dispose()
         {
             ConnectionStopped -= OnConnectionStopped;
+            transport.Dispose();
 
             base.Dispose();
         }
