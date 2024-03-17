@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using Exanite.Core.Collections;
 using Exanite.Core.Events;
@@ -54,17 +55,25 @@ namespace Exanite.Networking.Transports.InMemory
 
             if (Network.IsClient)
             {
-                // Prevent one frame delay issues when both server and client are started at the same time.
-                await UniTask.Yield();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-                if (!Servers.TryGetValue(Settings.VirtualPort, out var server))
+                // Try to connect for 3 seconds
+                while (stopwatch.Elapsed.Seconds < 3)
                 {
-                    throw new NetworkException($"No {typeof(InMemoryTransport).Name} server active on virtual port {Settings.VirtualPort}.");
+                    if (!Servers.TryGetValue(Settings.VirtualPort, out var server))
+                    {
+                        await UniTask.Yield();
+
+                        continue;
+                    }
+
+                    server.OnClientConnected(this);
+
+                    Status = LocalConnectionStatus.Started;
                 }
 
-                server.OnClientConnected(this);
-
-                Status = LocalConnectionStatus.Started;
+                throw new NetworkException($"No {typeof(InMemoryTransport).Name} server active on virtual port {Settings.VirtualPort}.");
             }
         }
 
