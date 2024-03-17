@@ -71,14 +71,13 @@ namespace Exanite.Networking.Transports.InMemory
         public void StopConnection()
         {
             StopConnection(true);
-
-            Servers.Inverse.Remove(this);
         }
 
         private void StopConnection(bool handleEvents)
         {
             try
             {
+                Servers.Inverse.Remove(this);
                 if (handleEvents)
                 {
                     PushEvents();
