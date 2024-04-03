@@ -19,10 +19,9 @@ namespace Exanite.Networking.Channels
         private readonly Dictionary<NetworkConnection, ConnectionInfo> connections = new();
         private readonly HashSet<NetworkConnection> readyConnections = new();
 
-        public ChanneledNetwork(int handlerId, ISimpleNetwork network)
+        public ChanneledNetwork(ISimpleNetwork network)
         {
             this.network = network;
-            HandlerId = handlerId;
 
             Channels = new ReadOnlyDictionaryWrapper<string, NetworkChannel, INetworkChannel>(channelsByKey);
 
@@ -37,8 +36,6 @@ namespace Exanite.Networking.Channels
             network.NetworkStopped -= OnNetworkStopped;
             network.NetworkDataReceived -= OnNetworkDataReceived;
         }
-
-        public int HandlerId { get; }
 
         public bool IsServer => network.IsServer;
         public bool IsClient => network.IsClient;
