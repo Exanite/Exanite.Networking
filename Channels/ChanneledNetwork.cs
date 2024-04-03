@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Exanite.Networking.Channels
 {
-    public class ChanneledNetwork : IPacketHandler, IChanneledNetwork
+    public class ChanneledNetwork : IChanneledNetwork, IDisposable
     {
-        private readonly IPacketHandlerNetwork network;
+        private readonly ISimpleNetwork network;
 
         private readonly NetDataWriter writer = new();
         private readonly NetworkProtocol localProtocol = new();
@@ -19,12 +19,23 @@ namespace Exanite.Networking.Channels
         private readonly Dictionary<NetworkConnection, ConnectionInfo> connections = new();
         private readonly HashSet<NetworkConnection> readyConnections = new();
 
-        public ChanneledNetwork(int handlerId, IPacketHandlerNetwork network)
+        public ChanneledNetwork(int handlerId, ISimpleNetwork network)
         {
             this.network = network;
             HandlerId = handlerId;
 
             Channels = new ReadOnlyDictionaryWrapper<string, NetworkChannel, INetworkChannel>(channelsByKey);
+
+            network.NetworkStarted += OnNetworkStarted;
+            network.NetworkStopped += OnNetworkStopped;
+            network.NetworkDataReceived += OnNetworkDataReceived;
+        }
+
+        public void Dispose()
+        {
+            network.NetworkStarted -= OnNetworkStarted;
+            network.NetworkStopped -= OnNetworkStopped;
+            network.NetworkDataReceived -= OnNetworkDataReceived;
         }
 
         public int HandlerId { get; }
@@ -90,7 +101,7 @@ namespace Exanite.Networking.Channels
 
             localProtocol.Serialize(writer);
 
-            network.SendAsPacketHandler(this, connection, writer, SendType.Reliable);
+            network.Send(connection, writer, SendType.Reliable);
         }
 
         private void OnChannelListReceived(NetworkConnection connection, NetDataReader reader)
@@ -134,7 +145,7 @@ namespace Exanite.Networking.Channels
                 writer.Put(channel.Key);
             }
 
-            network.SendAsPacketHandler(this, connection, writer, SendType.Reliable);
+            network.Send(connection, writer, SendType.Reliable);
         }
 
         private void Client_OnChannelIdAssignment(NetworkConnection connection, NetDataReader reader)
@@ -165,7 +176,7 @@ namespace Exanite.Networking.Channels
             writer.Reset();
             writer.Put((int)MessageType.ReadyToReceive);
 
-            network.SendAsPacketHandler(this, connection, writer, SendType.Reliable);
+            network.Send(connection, writer, SendType.Reliable);
         }
 
         private void OnReadyToReceive(NetworkConnection connection)
@@ -197,7 +208,7 @@ namespace Exanite.Networking.Channels
             writer.Put(args.ChannelId);
             writer.Put(args.Writer.Data, 0, args.Writer.Length);
 
-            network.SendAsPacketHandler(this, args.Connection, writer, args.SendType);
+            network.Send(args.Connection, writer, args.SendType);
         }
 
         private void OnChannelDataReceived(NetworkConnection connection, NetDataReader reader)
@@ -245,7 +256,7 @@ namespace Exanite.Networking.Channels
             }
         }
 
-        void IPacketHandler.OnNetworkStarted(INetwork network)
+        private void OnNetworkStarted(INetwork network)
         {
             network.ConnectionStarted += OnConnectionStarted;
             network.ConnectionStopped += OnConnectionStopped;
@@ -253,7 +264,7 @@ namespace Exanite.Networking.Channels
             SetStatus(network.IsServer ? LocalConnectionStatus.Started : LocalConnectionStatus.Starting);
         }
 
-        void IPacketHandler.OnNetworkStopped(INetwork network)
+        private void  OnNetworkStopped(INetwork network)
         {
             network.ConnectionStarted -= OnConnectionStarted;
             network.ConnectionStopped -= OnConnectionStopped;
@@ -274,7 +285,7 @@ namespace Exanite.Networking.Channels
             SetStatus(LocalConnectionStatus.Stopped);
         }
 
-        void IPacketHandler.OnReceive(INetwork network, NetworkConnection connection, NetDataReader reader, SendType sendType)
+        private void OnNetworkDataReceived(INetwork network, NetworkConnection connection, NetDataReader reader, SendType sendType)
         {
             var messageType = (MessageType)reader.GetInt();
             switch (messageType)

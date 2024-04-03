@@ -9,10 +9,9 @@ using UnityEngine;
 
 namespace Exanite.Networking
 {
-    public abstract class Network : IPacketHandlerNetwork, IDisposable
+    public abstract class Network : ISimpleNetwork, IDisposable
     {
         private ConnectionTracker connectionTracker;
-        private Dictionary<int, IPacketHandler> packetHandlers = new();
 
         private NetDataReader cachedReader = new();
         private NetDataWriter cachedWriter = new();
@@ -26,11 +25,11 @@ namespace Exanite.Networking
         public LocalConnectionStatus Status { get; protected set; }
         public virtual bool IsReady => Status == LocalConnectionStatus.Started;
 
-        public IReadOnlyDictionary<int, IPacketHandler> PacketHandlers => packetHandlers;
         public IEnumerable<NetworkConnection> Connections => connectionTracker.Connections.Values;
 
         public event NetworkStartedEvent NetworkStarted;
         public event NetworkStoppedEvent NetworkStopped;
+        public event NetworkDataReceived NetworkDataReceived;
 
         public event ConnectionStartedEvent ConnectionStarted;
         public event ConnectionStoppedEvent ConnectionStopped;
@@ -65,17 +64,7 @@ namespace Exanite.Networking
 
         public abstract void StopConnection();
 
-        public void RegisterPacketHandler(IPacketHandler handler)
-        {
-            packetHandlers.Add(handler.HandlerId, handler);
-        }
-
-        public void UnregisterPacketHandler(IPacketHandler handler)
-        {
-            packetHandlers.Remove(handler.HandlerId);
-        }
-
-        public void SendAsPacketHandler(IPacketHandler handler, NetworkConnection connection, NetDataWriter writer, SendType sendType)
+        public void Send(NetworkConnection connection, NetDataWriter writer, SendType sendType)
         {
             if (!IsReady)
             {
@@ -86,8 +75,6 @@ namespace Exanite.Networking
             {
                 throw new InvalidOperationException($"{GetType().Name} is not ready to send on transport {connection.Transport.GetType().Name}.");
             }
-
-            WritePacketHandlerDataToCachedWriter(handler, writer);
 
             var data = new ArraySegment<byte>(cachedWriter.Data, 0, cachedWriter.Length);
             connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
@@ -117,14 +104,6 @@ namespace Exanite.Networking
         }
 
         protected virtual void OnTickTransports() {}
-
-        private void WritePacketHandlerDataToCachedWriter(IPacketHandler handler, NetDataWriter writer)
-        {
-            cachedWriter.Reset();
-
-            cachedWriter.Put(handler.HandlerId);
-            cachedWriter.Put(writer.Data, 0, writer.Length);
-        }
 
         private void PushEvents()
         {
@@ -156,10 +135,6 @@ namespace Exanite.Networking
                 previousStatus = Status;
 
                 NetworkStarted?.Invoke(this);
-                foreach (var packetHandler in packetHandlers.Values)
-                {
-                    packetHandler.OnNetworkStarted(this);
-                }
             }
 
             if (Status == LocalConnectionStatus.Started)
@@ -173,10 +148,6 @@ namespace Exanite.Networking
                 ProcessEventQueue();
 
                 NetworkStopped?.Invoke(this);
-                foreach (var packetHandler in packetHandlers.Values)
-                {
-                    packetHandler.OnNetworkStopped(this);
-                }
             }
         }
 
@@ -223,16 +194,7 @@ namespace Exanite.Networking
             }
 
             cachedReader.SetSource(e.Data.Array, e.Data.Offset, e.Data.Offset + e.Data.Count);
-
-            var packetHandlerId = cachedReader.GetInt();
-            if (!packetHandlers.TryGetValue(packetHandlerId, out var packetHandler))
-            {
-                Debug.LogWarning($"Received data for packet handler that is not registered. Packet handler ID: {packetHandlerId}");
-
-                return;
-            }
-
-            packetHandler.OnReceive(this, connection, cachedReader, e.SendType);
+            NetworkDataReceived?.Invoke(this, connection, cachedReader, e.SendType);
         }
     }
 }
