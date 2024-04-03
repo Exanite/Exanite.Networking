@@ -118,12 +118,12 @@ namespace Exanite.Networking.Channels
 
             if (network.IsServer)
             {
-                SendChannelIdAssignment(connection);
+                Server_SendChannelIdAssignment(connection);
                 SendReadyToReceive(connection);
             }
         }
 
-        private void SendChannelIdAssignment(NetworkConnection connection)
+        private void Server_SendChannelIdAssignment(NetworkConnection connection)
         {
             writer.Reset();
             writer.Put((int)MessageType.ChannelIdAssignment);
@@ -137,7 +137,7 @@ namespace Exanite.Networking.Channels
             network.SendAsPacketHandler(this, connection, writer, SendType.Reliable);
         }
 
-        private void OnChannelIdAssignment(NetworkConnection connection, NetDataReader reader)
+        private void Client_OnChannelIdAssignment(NetworkConnection connection, NetDataReader reader)
         {
             var count = reader.GetInt();
 
@@ -287,7 +287,7 @@ namespace Exanite.Networking.Channels
                 }
                 case MessageType.ChannelIdAssignment:
                 {
-                    OnChannelIdAssignment(connection, reader);
+                    Client_OnChannelIdAssignment(connection, reader);
 
                     break;
                 }
