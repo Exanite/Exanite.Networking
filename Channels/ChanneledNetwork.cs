@@ -8,35 +8,6 @@ namespace Exanite.Networking.Channels
 {
     public class ChanneledNetwork : IPacketHandler, IChanneledNetwork
     {
-        private class ConnectionInfo
-        {
-            public NetworkProtocol ReceivedProtocol { get; } = new();
-            public bool IsReady { get; set; }
-        }
-
-        private enum MessageType
-        {
-            /// <summary>
-            /// Step 1. Sent by both server and client to confirm protocol compatibility.
-            /// </summary>
-            ChannelList,
-
-            /// <summary>
-            /// Step 2. Sent by server to tell client which channel ids will be used.
-            /// </summary>
-            ChannelIdAssignment,
-
-            /// <summary>
-            /// Step 3. Send by both server and client when they are ready to receive.
-            /// </summary>
-            ReadyToReceive,
-
-            /// <summary>
-            /// Data sent or received by a channel.
-            /// </summary>
-            ChannelData,
-        }
-
         private readonly IPacketHandlerNetwork network;
 
         private readonly NetDataWriter writer = new();
@@ -333,6 +304,35 @@ namespace Exanite.Networking.Channels
                     break;
                 }
             }
+        }
+
+        private class ConnectionInfo
+        {
+            public NetworkProtocol ReceivedProtocol { get; } = new();
+            public bool IsReady { get; set; }
+        }
+
+        private enum MessageType
+        {
+            /// <summary>
+            /// Step 1. Sent by both server and client to confirm protocol compatibility.
+            /// </summary>
+            ChannelList,
+
+            /// <summary>
+            /// Step 2. Sent by server to tell client which channel ids will be used.
+            /// </summary>
+            ChannelIdAssignment,
+
+            /// <summary>
+            /// Step 3. Send by both server and client when they are ready to receive.
+            /// </summary>
+            ReadyToReceive,
+
+            /// <summary>
+            /// Data sent or received by a channel.
+            /// </summary>
+            ChannelData,
         }
     }
 }
