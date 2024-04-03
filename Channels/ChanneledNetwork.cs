@@ -291,15 +291,15 @@ namespace Exanite.Networking.Channels
 
                     break;
                 }
-                case MessageType.ChannelData:
-                {
-                    OnChannelDataReceived(connection, reader);
-
-                    break;
-                }
                 case MessageType.ReadyToReceive:
                 {
                     OnReadyToReceive(connection);
+
+                    break;
+                }
+                case MessageType.ChannelData:
+                {
+                    OnChannelDataReceived(connection, reader);
 
                     break;
                 }
