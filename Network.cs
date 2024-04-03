@@ -14,7 +14,6 @@ namespace Exanite.Networking
         private ConnectionTracker connectionTracker;
 
         private NetDataReader cachedReader = new();
-        private NetDataWriter cachedWriter = new();
 
         private Queue<ConnectionStatusEventArgs> connectionEventQueue = new();
         private LocalConnectionStatus previousStatus;
@@ -76,7 +75,7 @@ namespace Exanite.Networking
                 throw new InvalidOperationException($"{GetType().Name} is not ready to send on transport {connection.Transport.GetType().Name}.");
             }
 
-            var data = new ArraySegment<byte>(cachedWriter.Data, 0, cachedWriter.Length);
+            var data = new ArraySegment<byte>(writer.Data, 0, writer.Length);
             connection.Transport.SendData(connection.TransportConnectionId, data, sendType);
         }
 
