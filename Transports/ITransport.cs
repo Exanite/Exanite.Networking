@@ -27,6 +27,7 @@ namespace Exanite.Networking.Transports
         /// Behavior is undefined for invalid connections.
         /// </remarks>
         public int GetMtu(int connectionId, SendType sendType);
+
         public void DisconnectConnection(int connectionId);
 
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);

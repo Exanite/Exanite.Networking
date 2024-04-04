@@ -21,14 +21,20 @@ namespace Exanite.Networking
 
         public RemoteConnectionStatus Status => Transport.GetConnectionStatus(TransportConnectionId);
 
-        public void Disconnect()
-        {
-            Transport.DisconnectConnection(TransportConnectionId);
-        }
-
+        /// <summary>
+        /// Returns the MTU in bytes for this connection and send type.
+        /// </summary>
+        /// <remarks>
+        /// Behavior is undefined for invalid connections.
+        /// </remarks>
         public int GetMtu(SendType sendType)
         {
             return Transport.GetMtu(TransportConnectionId, sendType);
+        }
+
+        public void Disconnect()
+        {
+            Transport.DisconnectConnection(TransportConnectionId);
         }
     }
 }
