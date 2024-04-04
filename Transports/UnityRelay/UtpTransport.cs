@@ -234,6 +234,17 @@ namespace Exanite.Networking.Transports.UnityRelay
             return connections.ContainsKey(connectionId) ? RemoteConnectionStatus.Started : RemoteConnectionStatus.Stopped;
         }
 
+        public int GetMtu(int connectionId, SendType sendType)
+        {
+            if (sendType == SendType.Unreliable)
+            {
+                return NetworkParameterConstants.MTU - Driver.MaxHeaderSize(UnreliablePipeline);
+            }
+
+            // Todo Figure out how to calculate MTU for reliable pipeline
+            return int.MaxValue;
+        }
+
         public void DisconnectConnection(int connectionId)
         {
             if (connections.TryGetValue(connectionId, out var connection))

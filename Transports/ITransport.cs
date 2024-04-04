@@ -19,6 +19,14 @@ namespace Exanite.Networking.Transports
         public void StopConnection();
 
         public RemoteConnectionStatus GetConnectionStatus(int connectionId);
+
+        /// <summary>
+        /// Returns the MTU in bytes for a connection and send type.
+        /// </summary>
+        /// <remarks>
+        /// Behavior is undefined for invalid connections.
+        /// </remarks>
+        public int GetMtu(int connectionId, SendType sendType);
         public void DisconnectConnection(int connectionId);
 
         public void SendData(int connectionId, ArraySegment<byte> data, SendType sendType);

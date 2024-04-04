@@ -108,6 +108,11 @@ namespace Exanite.Networking.Transports.InMemory
             return connections.ContainsKey(connectionId) ? RemoteConnectionStatus.Started : RemoteConnectionStatus.Stopped;
         }
 
+        public int GetMtu(int connectionId, SendType sendType)
+        {
+            return int.MaxValue;
+        }
+
         public void DisconnectConnection(int connectionId)
         {
             if (connections.TryGetValue(connectionId, out var remoteTransport))

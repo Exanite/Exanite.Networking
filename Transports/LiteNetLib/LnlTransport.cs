@@ -107,6 +107,21 @@ namespace Exanite.Networking.Transports.LiteNetLib
             return connections.ContainsKey(connectionId) ? RemoteConnectionStatus.Started : RemoteConnectionStatus.Stopped;
         }
 
+        public int GetMtu(int connectionId, SendType sendType)
+        {
+            if (connections.TryGetValue(connectionId, out var connection))
+            {
+                if (sendType == SendType.Reliable)
+                {
+                    return int.MaxValue;
+                }
+
+                return connection.Mtu;
+            }
+
+            return 0;
+        }
+
         public void DisconnectConnection(int connectionId)
         {
             if (connections.TryGetValue(connectionId, out var connection))
