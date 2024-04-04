@@ -25,5 +25,10 @@ namespace Exanite.Networking
         {
             Transport.DisconnectConnection(TransportConnectionId);
         }
+
+        public int GetMtu(SendType sendType)
+        {
+            return Transport.GetMtu(TransportConnectionId, sendType);
+        }
     }
 }
