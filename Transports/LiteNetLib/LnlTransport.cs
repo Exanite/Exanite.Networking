@@ -18,6 +18,8 @@ namespace Exanite.Networking.Transports.LiteNetLib
         public INetwork Network { get; set; }
         public LocalConnectionStatus Status { get; private set; }
 
+        public NetManager InternalNetManager => netManager;
+
         public event EventHandler<ITransport, TransportDataReceivedEventArgs> DataReceived;
         public event EventHandler<ITransport, TransportConnectionStatusEventArgs> ConnectionStatus;
 
