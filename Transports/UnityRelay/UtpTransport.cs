@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Exanite.Core.Collections;
 using Exanite.Core.Events;
 using Unity.Collections;
 using Unity.Networking.Transport;
@@ -17,17 +18,18 @@ namespace Exanite.Networking.Transports.UnityRelay
 {
     public class UtpTransport : ITransport
     {
-        private NetworkDriver Driver;
-        private NetworkPipeline ReliablePipeline;
-        private NetworkPipeline UnreliablePipeline;
+        private NetworkDriver driver;
+        private NetworkPipeline reliablePipeline;
+        private NetworkPipeline unreliablePipeline;
 
-        private Dictionary<int, UnityNetworkConnection> connections = new();
+        private int nextConnectionId;
+        private TwoWayDictionary<int, UnityNetworkConnection> connections = new();
         private List<int> connectionIdsToRemove = new();
 
         private Queue<TransportConnectionStatusEventArgs> connectionEventQueue = new();
 
-        private readonly IRelayService RelayService;
-        private readonly IAuthenticationService AuthenticationService;
+        private readonly IRelayService relayService;
+        private readonly IAuthenticationService authenticationService;
 
         public UtpTransportSettings Settings { get; }
 
@@ -40,8 +42,8 @@ namespace Exanite.Networking.Transports.UnityRelay
         public UtpTransport(UtpTransportSettings settings, IRelayService relayService, IAuthenticationService authenticationService)
         {
             Settings = settings;
-            RelayService = relayService;
-            AuthenticationService = authenticationService;
+            this.relayService = relayService;
+            this.authenticationService = authenticationService;
         }
 
         public void Dispose()
@@ -57,12 +59,12 @@ namespace Exanite.Networking.Transports.UnityRelay
                 return;
             }
 
-            Driver.ScheduleUpdate().Complete();
+            driver.ScheduleUpdate().Complete();
 
             RemoveDisconnectedConnections();
 
             UnityNetworkConnection incomingConnection;
-            while ((incomingConnection = Driver.Accept()) != default)
+            while ((incomingConnection = driver.Accept()) != default)
             {
                 // Accepted connections are immediately ready.
                 BeginTrackingConnection(incomingConnection);
@@ -72,7 +74,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             foreach (var (_, connection) in connections)
             {
                 NetworkEvent.Type networkEvent;
-                while ((networkEvent = Driver.PopEventForConnection(connection, out var stream, out var pipeline)) != NetworkEvent.Type.Empty)
+                while ((networkEvent = driver.PopEventForConnection(connection, out var stream, out var pipeline)) != NetworkEvent.Type.Empty)
                 {
                     switch (networkEvent)
                     {
@@ -93,7 +95,10 @@ namespace Exanite.Networking.Transports.UnityRelay
                         }
                         case NetworkEvent.Type.Disconnect:
                         {
-                            connectionIdsToRemove.Add(connection.InternalId);
+                            if (connections.Inverse.TryGetValue(connection, out var connectionId))
+                            {
+                                connectionIdsToRemove.Add(connectionId);
+                            }
 
                             break;
                         }
@@ -106,11 +111,11 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private void RemoveDisconnectedConnections()
         {
-            foreach (var connection in connections.Values)
+            foreach (var (connectionId, connection) in connections)
             {
                 if (!connection.IsCreated)
                 {
-                    connectionIdsToRemove.Add(connection.InternalId);
+                    connectionIdsToRemove.Add(connectionId);
                 }
             }
 
@@ -130,7 +135,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
                 await SignInIfNeeded();
 
-                var allocation = await RelayService.CreateAllocationAsync(Settings.MaxConnections);
+                var allocation = await relayService.CreateAllocationAsync(Settings.MaxConnections);
                 var relayData = UtpUtility.CreateHostRelayData(allocation);
 
                 var networkSettings = new NetworkSettings();
@@ -139,7 +144,7 @@ namespace Exanite.Networking.Transports.UnityRelay
                 await CreateAndBindNetworkDriver(networkSettings);
                 CreateNetworkPipelines();
 
-                if (Driver.Listen() != 0)
+                if (driver.Listen() != 0)
                 {
                     throw new NetworkException("Failed to start listening to connections");
                 }
@@ -155,7 +160,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
                 await SignInIfNeeded();
 
-                var allocation = await RelayService.JoinAllocationAsync(Settings.JoinCode);
+                var allocation = await relayService.JoinAllocationAsync(Settings.JoinCode);
                 var relayData = UtpUtility.CreatePlayerRelayData(allocation);
 
                 var networkSettings = new NetworkSettings();
@@ -166,14 +171,14 @@ namespace Exanite.Networking.Transports.UnityRelay
 
                 // Notice that Connect is a synchronous method.
                 // The server connection begins in the Connecting state and we must wait until the connection succeeds or fails.
-                var serverConnection = Driver.Connect(relayData.Endpoint);
+                var serverConnection = driver.Connect(relayData.Endpoint);
                 BeginTrackingConnection(serverConnection);
 
                 Status = LocalConnectionStatus.Started;
 
                 // Wait until connected or failed
-                await UniTask.WaitWhile(() => Driver.GetConnectionState(serverConnection) == UnityConnectionStatus.Connecting);
-                if (Driver.GetConnectionState(serverConnection) != UnityConnectionStatus.Connected)
+                await UniTask.WaitWhile(() => driver.GetConnectionState(serverConnection) == UnityConnectionStatus.Connecting);
+                if (driver.GetConnectionState(serverConnection) != UnityConnectionStatus.Connected)
                 {
                     Status = LocalConnectionStatus.Stopped;
 
@@ -184,7 +189,7 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private async UniTask UpdateJoinCode(Allocation allocation)
         {
-            var joinCode = await RelayService.GetJoinCodeAsync(allocation.AllocationId);
+            var joinCode = await relayService.GetJoinCodeAsync(allocation.AllocationId);
             Settings.JoinCode = joinCode;
         }
 
@@ -199,17 +204,17 @@ namespace Exanite.Networking.Transports.UnityRelay
             {
                 if (Status != LocalConnectionStatus.Stopped)
                 {
-                    foreach (var connection in connections.Values)
+                    foreach (var (connectionId, connection) in connections)
                     {
-                        connection.Disconnect(Driver);
-                        connectionIdsToRemove.Add(connection.InternalId);
+                        connection.Disconnect(driver);
+                        connectionIdsToRemove.Add(connectionId);
                     }
 
                     RemoveDisconnectedConnections();
 
-                    if (Driver.IsCreated)
+                    if (driver.IsCreated)
                     {
-                        Driver.ScheduleUpdate().Complete();
+                        driver.ScheduleUpdate().Complete();
                     }
 
                     if (handleEvents)
@@ -223,7 +228,7 @@ namespace Exanite.Networking.Transports.UnityRelay
                 connections.Clear();
                 connectionIdsToRemove.Clear();
 
-                Driver.Dispose();
+                driver.Dispose();
 
                 Status = LocalConnectionStatus.Stopped;
             }
@@ -238,7 +243,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             if (sendType == SendType.Unreliable)
             {
-                return NetworkParameterConstants.MTU - Driver.MaxHeaderSize(UnreliablePipeline);
+                return NetworkParameterConstants.MTU - driver.MaxHeaderSize(unreliablePipeline);
             }
 
             // Todo Figure out how to calculate MTU for reliable pipeline
@@ -249,7 +254,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         {
             if (connections.TryGetValue(connectionId, out var connection))
             {
-                connection.Disconnect(Driver);
+                connection.Disconnect(driver);
                 connectionIdsToRemove.Add(connectionId);
             }
         }
@@ -262,41 +267,41 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
 
             // Based off of Unity's Simple Relay Sample (using UTP) package
-            var pipeline = sendType == SendType.Reliable ? ReliablePipeline : UnreliablePipeline;
+            var pipeline = sendType == SendType.Reliable ? reliablePipeline : unreliablePipeline;
 
             using var buffer = new NativeArray<byte>(data.Count, Allocator.Temp);
             NativeArray<byte>.Copy(data.Array, data.Offset, buffer, 0, data.Count);
 
-            var writeStatus = Driver.BeginSend(pipeline, connection, out var writer);
+            var writeStatus = driver.BeginSend(pipeline, connection, out var writer);
             if (writeStatus != (int)StatusCode.Success)
             {
                 throw new NetworkException($"Failed to send data: {(StatusCode)writeStatus}");
             }
 
             writer.WriteBytes(buffer);
-            Driver.EndSend(writer);
+            driver.EndSend(writer);
         }
 
         private async UniTask SignInIfNeeded()
         {
-            if (Settings.AutoSignInToUnityServices && !AuthenticationService.IsSignedIn)
+            if (Settings.AutoSignInToUnityServices && !authenticationService.IsSignedIn)
             {
-                await AuthenticationService.SignInAnonymouslyAsync();
+                await authenticationService.SignInAnonymouslyAsync();
             }
         }
 
         private async UniTask CreateAndBindNetworkDriver(NetworkSettings networkSettings)
         {
-            Driver = NetworkDriver.Create(networkSettings);
+            driver = NetworkDriver.Create(networkSettings);
 
-            if (Driver.Bind(NetworkEndPoint.AnyIpv4) != 0)
+            if (driver.Bind(NetworkEndpoint.AnyIpv4) != 0)
             {
                 throw new NetworkException("Failed to bind to local address");
             }
 
-            while (!Driver.Bound)
+            while (!driver.Bound)
             {
-                Driver.ScheduleUpdate().Complete();
+                driver.ScheduleUpdate().Complete();
 
                 await UniTask.Yield();
             }
@@ -304,8 +309,8 @@ namespace Exanite.Networking.Transports.UnityRelay
 
         private void CreateNetworkPipelines()
         {
-            ReliablePipeline = Driver.CreatePipeline(typeof(FragmentationPipelineStage), typeof(ReliableSequencedPipelineStage));
-            UnreliablePipeline = Driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
+            reliablePipeline = driver.CreatePipeline(typeof(FragmentationPipelineStage), typeof(ReliableSequencedPipelineStage));
+            unreliablePipeline = driver.CreatePipeline(typeof(UnreliableSequencedPipelineStage));
         }
 
         private void PushEvents()
@@ -323,7 +328,7 @@ namespace Exanite.Networking.Transports.UnityRelay
         /// </summary>
         private void BeginTrackingConnection(UnityNetworkConnection connection)
         {
-            connections.Add(connection.InternalId, connection);
+            connections.Add(nextConnectionId++, connection);
         }
 
         /// <summary>
@@ -333,7 +338,10 @@ namespace Exanite.Networking.Transports.UnityRelay
         /// </summary>
         private void OnConnectionReady(UnityNetworkConnection connection)
         {
-            connectionEventQueue.Enqueue(new TransportConnectionStatusEventArgs(connection.InternalId, RemoteConnectionStatus.Started));
+            if (connections.Inverse.TryGetValue(connection, out var connectionId))
+            {
+                connectionEventQueue.Enqueue(new TransportConnectionStatusEventArgs(connectionId, RemoteConnectionStatus.Started));
+            }
         }
 
         private void OnConnectionStopped(int connectionId)
@@ -351,9 +359,12 @@ namespace Exanite.Networking.Transports.UnityRelay
             stream.ReadBytes(buffer);
 
             var data = new ArraySegment<byte>(buffer.ToArray());
-            var sendType = pipeline == ReliablePipeline ? SendType.Reliable : SendType.Unreliable;
+            var sendType = pipeline == reliablePipeline ? SendType.Reliable : SendType.Unreliable;
 
-            DataReceived?.Invoke(this, new TransportDataReceivedEventArgs(connection.InternalId, data, sendType));
+            if (connections.Inverse.TryGetValue(connection, out var connectionId))
+            {
+                DataReceived?.Invoke(this, new TransportDataReceivedEventArgs(connectionId, data, sendType));
+            }
         }
     }
 }

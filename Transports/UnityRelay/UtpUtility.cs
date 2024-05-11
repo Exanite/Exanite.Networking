@@ -22,7 +22,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
 
             // Prepare the server endpoint using the Relay server IP and port
-            var serverEndpoint = NetworkEndPoint.Parse(endpoint.Host, (ushort)endpoint.Port);
+            var serverEndpoint = NetworkEndpoint.Parse(endpoint.Host, (ushort)endpoint.Port);
 
             // UTP uses pointers instead of managed arrays for performance reasons, so we use these helper functions to convert them
             var allocationIdBytes = ConvertFromAllocationIdBytes(allocation.AllocationIdBytes);
@@ -46,7 +46,7 @@ namespace Exanite.Networking.Transports.UnityRelay
             }
 
             // Prepare the server endpoint using the Relay server IP and port
-            var serverEndpoint = NetworkEndPoint.Parse(endpoint.Host, (ushort)endpoint.Port);
+            var serverEndpoint = NetworkEndpoint.Parse(endpoint.Host, (ushort)endpoint.Port);
 
             // UTP uses pointers instead of managed arrays for performance reasons, so we use these helper functions to convert them
             var allocationIdBytes = ConvertFromAllocationIdBytes(allocation.AllocationIdBytes);
