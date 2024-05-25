@@ -13,8 +13,8 @@ namespace Exanite.Networking.Channels
     {
         public TMessage Message { get; set; }
 
-        public void Send(NetworkConnection connection);
-        public void Send(NetworkConnection connection, TMessage message);
+        public void SendAndWrite(NetworkConnection connection);
+        public void SendAndWrite(NetworkConnection connection, TMessage message);
 
         public void Write();
         public void Write(TMessage message);

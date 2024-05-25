@@ -40,12 +40,12 @@ namespace Exanite.Networking.Channels
 
         public event Action<NetworkChannelDataSentEventArgs> DataSent;
 
-        public void Send(NetworkConnection connection)
+        public void SendAndWrite(NetworkConnection connection)
         {
-            Send(connection, Message);
+            SendAndWrite(connection, Message);
         }
 
-        public void Send(NetworkConnection connection, TMessage message)
+        public void SendAndWrite(NetworkConnection connection, TMessage message)
         {
             Write(message);
             SendNoWrite(connection);
